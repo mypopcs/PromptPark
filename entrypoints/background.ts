@@ -1,3 +1,4 @@
 export default defineBackground(() => {
-  console.log('Hello background!', { id: browser.runtime.id });
+  // 这里的代码会在浏览器后台 Service Worker 中运行
+  console.log("PromptPark Background Service Worker 启动");
 });

@@ -1,3 +1,23 @@
 {
-  "extends": "./.wxt/tsconfig.json"
+  // 继承 WXT 提供的 TypeScript 配置
+  "extends": "./.wxt/tsconfig.json",
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".wxt/types/*.d.ts",
+    "types/material-tailwind.d.ts", // 包含你的补丁文件
+    "components.json"
+  ],
+  // 配置 TypeScript 编译选项
+  "compilerOptions": {
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      // 配置路径别名
+      "@/*": ["./*"]
+    },
+    "jsx": "react-jsx"
+  }
 }

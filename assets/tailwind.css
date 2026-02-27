@@ -1,0 +1,8 @@
+/* 文件路径: assets/tailwind.css */
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* * DaisyUI 主题配置预留
+ * 我们在这里指定默认支持 light 和 dark 主题
+ */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
