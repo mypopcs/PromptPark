@@ -1,4 +1,15 @@
+// entrypoints/background.ts
 export default defineBackground(() => {
-  // 这里的代码会在浏览器后台 Service Worker 中运行
-  console.log("PromptPark Background Service Worker 启动");
+  browser.commands.onCommand.addListener(async (command) => {
+    if (command === "collect-prompt") {
+      const [tab] = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (tab?.id) {
+        // 向当前页面发送采集指令
+        browser.tabs.sendMessage(tab.id, { action: "COLLECT_SELECTED" });
+      }
+    }
+  });
 });
