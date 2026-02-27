@@ -1,12 +1,8 @@
 <template>
-  <div class="space-y-8 max-w-3xl">
-    <div v-if="isLoading" class="flex justify-center py-10">
-      <span class="loading loading-spinner loading-lg text-primary"></span>
-    </div>
-
-    <template v-else>
-      <section class="space-y-4">
-        <h2 class="text-xl font-semibold border-b border-base-200 pb-2">
+  <div class="space-y-6 max-w-4xl pb-10">
+    <section class="card bg-base-100 shadow-sm border border-base-200">
+      <div class="card-body gap-4">
+        <h2 class="card-title text-lg border-l-4 border-primary pl-2">
           飞书多维表格配置
         </h2>
         <div class="grid grid-cols-2 gap-4">
@@ -15,8 +11,7 @@
             <input
               v-model="form.feishu.appId"
               type="text"
-              placeholder="输入飞书应用的 App ID"
-              class="input input-bordered w-full"
+              class="input input-bordered input-sm"
             />
           </label>
           <label class="form-control w-full">
@@ -24,151 +19,134 @@
             <input
               v-model="form.feishu.appSecret"
               type="password"
-              placeholder="输入飞书应用的 App Secret"
-              class="input input-bordered w-full"
+              class="input input-bordered input-sm"
             />
           </label>
           <label class="form-control w-full">
-            <div class="label">
-              <span class="label-text">Bitable ID (app_token)</span>
-            </div>
+            <div class="label"><span class="label-text">Bitable ID</span></div>
             <input
               v-model="form.feishu.bitableId"
               type="text"
-              placeholder="多维表格的基础 Token"
-              class="input input-bordered w-full"
+              class="input input-bordered input-sm"
             />
           </label>
           <label class="form-control w-full">
-            <div class="label">
-              <span class="label-text">Table ID (table_id)</span>
-            </div>
+            <div class="label"><span class="label-text">Table ID</span></div>
             <input
               v-model="form.feishu.tableId"
               type="text"
-              placeholder="具体的表格 ID"
-              class="input input-bordered w-full"
+              class="input input-bordered input-sm"
             />
           </label>
         </div>
-        <div class="form-control">
-          <label class="label cursor-pointer justify-start gap-4">
-            <input
-              v-model="form.enableAutoSync"
-              type="checkbox"
-              class="toggle toggle-primary"
-            />
-            <span class="label-text"
-              >开启后台自动同步 (间隔: {{ form.syncInterval / 60 }} 分钟)</span
-            >
-          </label>
+        <div class="card-actions justify-end mt-2">
+          <button
+            class="btn btn-outline btn-xs"
+            @click="handleTestFeishu"
+            :disabled="isTestingFeishu"
+          >
+            <span
+              v-if="isTestingFeishu"
+              class="loading loading-spinner loading-xs"
+            ></span>
+            测试飞书 API
+          </button>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="space-y-4 pt-4">
-        <h2 class="text-xl font-semibold border-b border-base-200 pb-2">
-          GitHub 图床配置 (用于提示词缩略图)
+    <section class="card bg-base-100 shadow-sm border border-base-200">
+      <div class="card-body gap-4">
+        <h2 class="card-title text-lg border-l-4 border-secondary pl-2">
+          GitHub 图床配置
         </h2>
         <div class="grid grid-cols-2 gap-4">
           <label class="form-control w-full">
-            <div class="label">
-              <span class="label-text">个人访问令牌 (PAT)</span>
-            </div>
-            <input
-              v-model="form.github.token"
-              type="password"
-              placeholder="ghp_xxxxxxxxxxx"
-              class="input input-bordered w-full"
-            />
-          </label>
-          <label class="form-control w-full">
-            <div class="label">
-              <span class="label-text">仓库所有者 (Owner)</span>
-            </div>
+            <div class="label"><span class="label-text">Repo Owner</span></div>
             <input
               v-model="form.github.owner"
               type="text"
-              placeholder="GitHub 用户名"
-              class="input input-bordered w-full"
+              class="input input-bordered input-sm"
             />
           </label>
           <label class="form-control w-full">
-            <div class="label">
-              <span class="label-text">仓库名称 (Repo)</span>
-            </div>
+            <div class="label"><span class="label-text">Repository</span></div>
             <input
               v-model="form.github.repo"
               type="text"
-              placeholder="例如: prompt-images"
-              class="input input-bordered w-full"
+              class="input input-bordered input-sm"
             />
           </label>
           <label class="form-control w-full">
-            <div class="label">
-              <span class="label-text">存储目录路径 (Path)</span>
-            </div>
+            <div class="label"><span class="label-text">Token</span></div>
+            <input
+              v-model="form.github.token"
+              type="password"
+              class="input input-bordered input-sm"
+            />
+          </label>
+          <label class="form-control w-full">
+            <div class="label"><span class="label-text">Path</span></div>
             <input
               v-model="form.github.path"
               type="text"
-              placeholder="例如: images/2026/"
-              class="input input-bordered w-full"
+              class="input input-bordered input-sm"
             />
           </label>
         </div>
-      </section>
-
-      <section class="space-y-4 pt-4">
-        <h2 class="text-xl font-semibold border-b border-base-200 pb-2">
-          个性化设置
-        </h2>
-        <div class="grid grid-cols-2 gap-4">
-          <label class="form-control w-full max-w-xs">
-            <div class="label"><span class="label-text">界面语言</span></div>
-            <select v-model="form.language" class="select select-bordered">
-              <option value="zh-CN">简体中文 (默认)</option>
-              <option value="en-US">English</option>
-            </select>
-          </label>
-          <label class="form-control w-full max-w-xs">
-            <div class="label"><span class="label-text">UI 主题</span></div>
-            <select v-model="form.theme" class="select select-bordered">
-              <option value="light">明亮模式 (Light)</option>
-              <option value="dark">暗黑模式 (Dark)</option>
-            </select>
-          </label>
+        <div class="card-actions justify-end mt-2">
+          <button
+            class="btn btn-outline btn-xs"
+            @click="handleTestGithub"
+            :disabled="isTestingGithub"
+          >
+            <span
+              v-if="isTestingGithub"
+              class="loading loading-spinner loading-xs"
+            ></span>
+            测试 GitHub 图床
+          </button>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <div class="pt-6 flex gap-4">
+    <div
+      class="sticky bottom-0 bg-base-100/80 backdrop-blur py-4 border-t border-base-200 flex justify-between items-center px-2"
+    >
+      <div class="flex gap-2">
         <button
-          class="btn btn-primary"
-          @click="handleSave"
-          :disabled="isSaving"
+          class="btn btn-ghost btn-sm"
+          @click="handleSyncAction('syncFromFeishu')"
+          :disabled="isSyncing"
         >
-          <span v-if="isSaving" class="loading loading-spinner"></span>
-          保存所有配置
+          从飞书获取数据
         </button>
-        <button class="btn btn-outline" @click="testConnection">
-          测试 API 连接
+        <button
+          class="btn btn-ghost btn-sm"
+          @click="handleSyncAction('syncToFeishu')"
+          :disabled="isSyncing"
+        >
+          同步数据到飞书
         </button>
       </div>
-    </template>
+      <button
+        class="btn btn-primary btn-sm px-10"
+        @click="handleSave"
+        :disabled="isSaving"
+      >
+        {{ isSaving ? "正在保存..." : "保存配置" }}
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { getSettings, saveSettings } from "@/utils/storage";
+import { testFeishuConfig, testGithubConfig } from "@/utils/sync-engine";
 import type { AppSettings } from "@/types";
 
-/**
- * 响应式状态定义
- */
-const isLoading = ref(true); // 控制初始化加载状态
-const isSaving = ref(false); // 控制保存按钮状态
-
-// 使用 ref 完整映射 AppSettings 的结构
-// 这里赋予初始空值，onMounted 时会被真实数据覆盖
+// 修正：补全 AppSettings 缺失的属性（如 syncOnStartup）
 const form = ref<AppSettings>({
   feishu: {
     appId: "",
@@ -185,43 +163,63 @@ const form = ref<AppSettings>({
   theme: "light",
 });
 
-/**
- * 生命周期: 组件挂载时读取本地存储的配置
- */
+const isSaving = ref(false);
+const isTestingFeishu = ref(false);
+const isTestingGithub = ref(false);
+const isSyncing = ref(false);
+
 onMounted(async () => {
-  try {
-    const settings = await getSettings();
-    form.value = { ...settings }; // 浅拷贝赋值给表单
-  } catch (error) {
-    console.error("读取配置失败:", error);
-  } finally {
-    isLoading.value = false;
-  }
+  const settings = await getSettings();
+  form.value = { ...settings };
 });
 
-/**
- * 方法: 保存表单配置到本地存储
- * 逻辑: 调用 utils/storage.ts 中的 saveSettings 接口
- */
 const handleSave = async () => {
   isSaving.value = true;
   try {
-    // 强制转换为 AppSettings 确保类型安全
-    await saveSettings(form.value as AppSettings);
-    // TODO: 可以在这里添加一个 Toast 成功提示 (如 DaisyUI 的 toast 气泡)
-    alert("配置保存成功！");
-  } catch (error) {
-    console.error("保存配置失败:", error);
-    alert("保存失败，请重试");
+    await saveSettings(form.value);
+    browser.runtime.sendMessage({ action: "UPDATE_SETTINGS" });
+    alert("配置已保存");
   } finally {
     isSaving.value = false;
   }
 };
 
-/**
- * 方法: 预留的测试网络连接功能
- */
-const testConnection = () => {
-  alert("网络测试功能将在后续“同步引擎”模块中完善。");
+const handleTestFeishu = async () => {
+  isTestingFeishu.value = true;
+  try {
+    await saveSettings(form.value);
+    await testFeishuConfig();
+    alert("飞书连接成功！");
+  } catch (e: any) {
+    alert(`测试失败: ${e.message}`);
+  } finally {
+    isTestingFeishu.value = false;
+  }
+};
+
+const handleTestGithub = async () => {
+  isTestingGithub.value = true;
+  try {
+    await saveSettings(form.value);
+    await testGithubConfig();
+    alert("GitHub 连接成功！");
+  } catch (e: any) {
+    alert(`测试失败: ${e.message}`);
+  } finally {
+    isTestingGithub.value = false;
+  }
+};
+
+const handleSyncAction = async (action: string) => {
+  isSyncing.value = true;
+  try {
+    const res = await browser.runtime.sendMessage({ action });
+    if (res?.success) alert("同步任务已完成");
+    else throw new Error(res?.error || "同步失败");
+  } catch (e: any) {
+    alert(`同步异常: ${e.message}`);
+  } finally {
+    isSyncing.value = false;
+  }
 };
 </script>
