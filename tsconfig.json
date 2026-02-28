@@ -1,23 +1,32 @@
 {
-  // 继承 WXT 提供的 TypeScript 配置
   "extends": "./.wxt/tsconfig.json",
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".wxt/types/*.d.ts",
-    "types/material-tailwind.d.ts", // 包含你的补丁文件
-    "components.json"
+    "**/*.vue",
+    ".wxt/types/*.d.ts"
   ],
-  // 配置 TypeScript 编译选项
   "compilerOptions": {
-    "moduleResolution": "Bundler",
+    "target": "ES2022",
     "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": true,
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      // 配置路径别名
-      "@/*": ["./*"]
-    },
-    "jsx": "react-jsx"
-  }
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "vite.config.ts",
+    "tailwind.config.ts"
+  ]
 }

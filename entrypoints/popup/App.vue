@@ -60,6 +60,9 @@
         </button>
       </div>
     </main>
+
+    <AppToast />
+    <ConfirmDialog />
   </div>
 </template>
 
@@ -67,6 +70,11 @@
 import { ref, onMounted } from "vue";
 import { getSettings } from "@/utils/storage";
 import type { AppSettings } from "@/types";
+import AppToast from "@/components/ui/AppToast.vue";
+import ConfirmDialog from "@/components/ui/ConfirmDialog.vue";
+import { useMessage } from "@/composables/useMessage";
+
+const { success, error } = useMessage();
 
 // 响应式状态
 const isSyncing = ref(false);
@@ -138,14 +146,17 @@ const handleSync = async (action: "syncToFeishu" | "syncFromFeishu") => {
 
     if (response && response.success) {
       // 等待 500ms 确保存储已更新后再刷新 UI
+      success("同步任务已完成");
       setTimeout(refreshStatus, 500);
     } else {
       throw new Error(response?.error || "同步未成功");
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     statusText.value = "执行失败";
     statusClass.value = "text-error text-xs";
-    statDesc.value = err.message || "通讯错误";
+    const errorMessage = err instanceof Error ? err.message : "通讯错误";
+    statDesc.value = errorMessage;
+    error(`同步失败：${errorMessage}`);
   } finally {
     isSyncing.value = false;
     isSyncingAction.value = "";

@@ -10,9 +10,23 @@ export async function uploadToGithub(file: File): Promise<string> {
 
   if (!token || !owner || !repo) throw new Error("请先完善 GitHub 配置");
 
-  const base64Content = await new Promise<string>((resolve) => {
+  const base64Content = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve((reader.result as string).split(",")[1]);
+    reader.onload = () => {
+      if (typeof reader.result !== "string") {
+        reject(new Error("图片读取失败：格式异常"));
+        return;
+      }
+      const content = reader.result.split(",")[1];
+      if (!content) {
+        reject(new Error("图片读取失败：内容为空"));
+        return;
+      }
+      resolve(content);
+    };
+    reader.onerror = () => {
+      reject(new Error("图片读取失败：无法解析文件"));
+    };
     reader.readAsDataURL(file);
   });
 
@@ -32,6 +46,10 @@ export async function uploadToGithub(file: File): Promise<string> {
   });
 
   if (!response.ok) throw new Error("图片上传 GitHub 失败");
-  const result = await response.json();
-  return result.content.download_url; // 返回直连链接
+  const result: { content?: { download_url?: string } } = await response.json();
+  const downloadUrl = result.content?.download_url;
+  if (!downloadUrl) {
+    throw new Error("图片上传成功但未返回可用链接");
+  }
+  return downloadUrl;
 }

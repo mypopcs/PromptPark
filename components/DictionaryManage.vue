@@ -213,8 +213,11 @@ onMounted(async () => {
   console.log("📦 处理后的词典数据:", dictionaries.value);
   allCategories.value = Array.isArray(c) ? c : [];
   if (dictionaries.value.length > 0) {
-    selectedDictId.value = dictionaries.value[0].id;
-    console.log("📦 选中的词典ID:", selectedDictId.value);
+    const firstDictionary = dictionaries.value[0];
+    if (firstDictionary) {
+      selectedDictId.value = firstDictionary.id;
+      console.log("📦 选中的词典ID:", selectedDictId.value);
+    }
   }
   console.log("📦 组件挂载完成");
 });
