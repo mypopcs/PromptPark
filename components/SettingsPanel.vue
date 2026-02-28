@@ -12,6 +12,7 @@
               v-model="form.feishu.appId"
               type="text"
               class="input input-bordered input-sm"
+              placeholder="例如：cli_xxx"
             />
           </label>
           <label class="form-control w-full">
@@ -20,6 +21,7 @@
               v-model="form.feishu.appSecret"
               type="password"
               class="input input-bordered input-sm"
+              placeholder="请输入飞书应用密钥"
             />
           </label>
           <label class="form-control w-full">
@@ -28,6 +30,7 @@
               v-model="form.feishu.bitableId"
               type="text"
               class="input input-bordered input-sm"
+              placeholder="例如：bascnxxxx"
             />
           </label>
           <label class="form-control w-full">
@@ -36,6 +39,7 @@
               v-model="form.feishu.tableId"
               type="text"
               class="input input-bordered input-sm"
+              placeholder="例如：tblxxxx"
             />
           </label>
         </div>
@@ -67,6 +71,7 @@
               v-model="form.github.owner"
               type="text"
               class="input input-bordered input-sm"
+              placeholder="例如：your-github-name"
             />
           </label>
           <label class="form-control w-full">
@@ -75,6 +80,7 @@
               v-model="form.github.repo"
               type="text"
               class="input input-bordered input-sm"
+              placeholder="例如：prompt-park-assets"
             />
           </label>
           <label class="form-control w-full">
@@ -83,6 +89,7 @@
               v-model="form.github.token"
               type="password"
               class="input input-bordered input-sm"
+              placeholder="请输入 GitHub Token"
             />
           </label>
           <label class="form-control w-full">
@@ -91,6 +98,7 @@
               v-model="form.github.path"
               type="text"
               class="input input-bordered input-sm"
+              placeholder="例如：images/prompts"
             />
           </label>
         </div>
@@ -106,6 +114,31 @@
             ></span>
             测试 GitHub 图床
           </button>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="card bg-base-100 shadow-sm border border-base-200">
+      <div class="card-body gap-4">
+        <h2 class="card-title text-lg border-l-4 border-accent pl-2">
+          界面与语言设置
+        </h2>
+        <div class="grid grid-cols-2 gap-4">
+          <label class="form-control w-full">
+            <div class="label"><span class="label-text">界面语言</span></div>
+            <select v-model="form.language" class="select select-bordered select-sm">
+              <option value="zh-CN">简体中文</option>
+              <option value="en-US">English</option>
+            </select>
+          </label>
+          <label class="form-control w-full">
+            <div class="label"><span class="label-text">主题模式</span></div>
+            <select v-model="form.theme" class="select select-bordered select-sm">
+              <option value="light">亮色模式</option>
+              <option value="dark">暗黑模式</option>
+            </select>
+          </label>
         </div>
       </div>
     </section>
@@ -142,6 +175,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useMessage } from "@/composables/useMessage";
+import { useTheme } from "@/composables/useTheme";
+import { useLocale } from "@/composables/useLocale";
 import { getSettings, saveSettings } from "@/utils/storage";
 import { testFeishuConfig, testGithubConfig } from "@/utils/sync-engine";
 import type { AppSettings } from "@/types";
@@ -168,17 +204,35 @@ const isTestingFeishu = ref(false);
 const isTestingGithub = ref(false);
 const isSyncing = ref(false);
 
+const { success, error } = useMessage();
+const { setTheme } = useTheme();
+const { setLocale } = useLocale();
+
+/**
+ * 将未知错误转换为用户可读文案。
+ */
+const getErrorMessage = (value: unknown): string => {
+  if (value instanceof Error) return value.message;
+  return "操作失败，请稍后重试";
+};
+
 onMounted(async () => {
   const settings = await getSettings();
   form.value = { ...settings };
+  setTheme(form.value.theme);
+  setLocale(form.value.language);
 });
 
 const handleSave = async () => {
   isSaving.value = true;
   try {
     await saveSettings(form.value);
+    setTheme(form.value.theme);
+    setLocale(form.value.language);
     browser.runtime.sendMessage({ action: "UPDATE_SETTINGS" });
-    alert("配置已保存");
+    success("配置已保存，主题与语言已更新");
+  } catch (e: unknown) {
+    error(`保存失败：${getErrorMessage(e)}`);
   } finally {
     isSaving.value = false;
   }
@@ -189,9 +243,9 @@ const handleTestFeishu = async () => {
   try {
     await saveSettings(form.value);
     await testFeishuConfig();
-    alert("飞书连接成功！");
-  } catch (e: any) {
-    alert(`测试失败: ${e.message}`);
+    success("飞书连接成功！");
+  } catch (e: unknown) {
+    error(`飞书测试失败：${getErrorMessage(e)}`);
   } finally {
     isTestingFeishu.value = false;
   }
@@ -202,9 +256,9 @@ const handleTestGithub = async () => {
   try {
     await saveSettings(form.value);
     await testGithubConfig();
-    alert("GitHub 连接成功！");
-  } catch (e: any) {
-    alert(`测试失败: ${e.message}`);
+    success("GitHub 连接成功！");
+  } catch (e: unknown) {
+    error(`GitHub 测试失败：${getErrorMessage(e)}`);
   } finally {
     isTestingGithub.value = false;
   }
@@ -214,10 +268,10 @@ const handleSyncAction = async (action: string) => {
   isSyncing.value = true;
   try {
     const res = await browser.runtime.sendMessage({ action });
-    if (res?.success) alert("同步任务已完成");
+    if (res?.success) success("同步任务已完成");
     else throw new Error(res?.error || "同步失败");
-  } catch (e: any) {
-    alert(`同步异常: ${e.message}`);
+  } catch (e: unknown) {
+    error(`同步异常：${getErrorMessage(e)}`);
   } finally {
     isSyncing.value = false;
   }

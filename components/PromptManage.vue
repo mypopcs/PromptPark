@@ -179,6 +179,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useDangerousConfirm } from "@/composables/useDangerousConfirm";
 import {
   getDictionaries,
   getCategories,
@@ -199,6 +200,8 @@ const prompts = ref<Prompt[]>([]);
 const tags = ref<PromptTag[]>([]);
 const platforms = ref<AIPlatform[]>([]);
 const models = ref<AIModel[]>([]);
+
+const { confirmDangerousDelete } = useDangerousConfirm();
 
 const searchQuery = ref("");
 const filterDictId = ref("");
@@ -342,7 +345,7 @@ const handleSave = async (formData: Partial<Prompt>) => {
 };
 
 const handleDelete = async (id: string) => {
-  if (!confirm("确定删除此提示词？")) return;
+  if (!(await confirmDangerousDelete("该提示词"))) return;
   prompts.value = prompts.value.filter((p) => p.id !== id);
   await savePrompts(prompts.value);
 };

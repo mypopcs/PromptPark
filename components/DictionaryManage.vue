@@ -164,6 +164,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useDangerousConfirm } from "@/composables/useDangerousConfirm";
 import {
   getDictionaries,
   saveDictionaries,
@@ -172,6 +173,8 @@ import {
 } from "@/utils/storage";
 import type { Dictionary, Category } from "@/types";
 import BaseTable from "./BaseTable.vue";
+
+const { confirmDangerousDelete } = useDangerousConfirm();
 
 const dictionaries = ref<Dictionary[]>([]);
 const allCategories = ref<Category[]>([]);
@@ -213,8 +216,11 @@ onMounted(async () => {
   console.log("📦 处理后的词典数据:", dictionaries.value);
   allCategories.value = Array.isArray(c) ? c : [];
   if (dictionaries.value.length > 0) {
-    selectedDictId.value = dictionaries.value[0].id;
-    console.log("📦 选中的词典ID:", selectedDictId.value);
+    const firstDictionary = dictionaries.value[0];
+    if (firstDictionary) {
+      selectedDictId.value = firstDictionary.id;
+      console.log("📦 选中的词典ID:", selectedDictId.value);
+    }
   }
   console.log("📦 组件挂载完成");
 });
@@ -267,7 +273,7 @@ const saveDict = async () => {
 };
 
 const handleDeleteDict = async (id: string) => {
-  if (!confirm("确定删除词典？")) return;
+  if (!(await confirmDangerousDelete("该词典"))) return;
   dictionaries.value = dictionaries.value.filter((d) => d.id !== id);
   await saveDictionaries(dictionaries.value);
 };
@@ -306,7 +312,7 @@ const saveCat = async () => {
 };
 
 const handleDeleteCat = async (catId: string) => {
-  if (!selectedDict.value || !confirm("确定删除该分类吗？")) return;
+  if (!selectedDict.value || !(await confirmDangerousDelete("该分类"))) return;
   allCategories.value = allCategories.value.filter((c) => c.id !== catId);
   selectedDict.value.categoryIds = selectedDict.value.categoryIds.filter(
     (id) => id !== catId,

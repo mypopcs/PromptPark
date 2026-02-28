@@ -80,11 +80,12 @@ export default defineBackground(() => {
         action: "SYNC_FINISHED",
         status: "success",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[PromptPark] 同步失败:", error);
       const settings = await getSettings();
       settings.lastSyncStatusCode = "failed";
-      settings.lastSyncError = error.message;
+      settings.lastSyncError =
+        error instanceof Error ? error.message : "同步任务执行失败，请稍后重试";
       await saveSettings(settings);
     }
   };

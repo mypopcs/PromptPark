@@ -123,7 +123,7 @@ export interface AppSettings {
 export interface MessageRequest {
   action: string; // 操作类型 (如 'SYNC_DATA', 'SAVE_PROMPT')
   language?: string; // 语言环境
-  data?: any; // 传输的数据载荷 (因动作不同数据结构不同，保留 any)
+  data?: unknown; // 传输的数据载荷（动作不同结构不同，使用 unknown 保证类型安全）
   dictionaryId?: string; // 涉及的词典ID
   categoryId?: string; // 涉及的分类ID
   id?: string; // 通用目标ID

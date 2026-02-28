@@ -18,6 +18,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useMessage } from "@/composables/useMessage";
 import {
   getDictionaries,
   getCategories,
@@ -46,6 +47,16 @@ const platforms = ref<AIPlatform[]>([]);
 const models = ref<AIModel[]>([]);
 const tags = ref<PromptTag[]>([]);
 
+const { success, error } = useMessage();
+
+/**
+ * 将未知错误转换为用户可读文案。
+ */
+const getErrorMessage = (value: unknown): string => {
+  if (value instanceof Error) return value.message;
+  return "操作失败，请稍后重试";
+};
+
 const handleImageUpload = async (file: File) => {
   if (!file) return;
   isUploading.value = true;
@@ -64,30 +75,45 @@ const show = (selectedText: string) => {
   });
 };
 
+/**
+ * 保存采集到的提示词。
+ * 包含输入校验、异常捕获和用户友好消息提示。
+ */
 const handleSave = async (formData: Partial<Prompt>) => {
   if (!formData.text || !formData.dictionaryId) {
-    alert("请填写提示词和所属词典");
+    error("请填写提示词和所属词典");
     return;
   }
 
-  const prompts = await getPrompts();
-  const newPrompt: Prompt = {
-    ...(formData as Prompt),
-    id: "p_" + Date.now(),
-    tagIds: formData.tagIds || [],
-    AIPlatformIds: formData.AIPlatformIds || [],
-    AIModelIds: formData.AIModelIds || [],
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-    viewNum: 0,
-    favoriteNum: 0,
-    useNum: 0,
-  };
+  try {
+    const prompts = await getPrompts();
+    const newPrompt: Prompt = {
+      id: `p_${Date.now()}`,
+      dictionaryId: formData.dictionaryId,
+      categoryId: formData.categoryId || "",
+      text: formData.text,
+      chinese: formData.chinese || "",
+      remark: formData.remark || "",
+      imageUrl: formData.imageUrl,
+      viewNum: 0,
+      favoriteNum: 0,
+      useNum: 0,
+      tagIds: formData.tagIds || [],
+      AIPlatformIds: formData.AIPlatformIds || [],
+      AIModelIds: formData.AIModelIds || [],
+      parkUseNum: formData.parkUseNum || false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      feishuRecordId: formData.feishuRecordId,
+    };
 
-  prompts.push(newPrompt);
-  await savePrompts(prompts);
-  alert("采集成功！");
-  modalRef.value?.close();
+    prompts.push(newPrompt);
+    await savePrompts(prompts);
+    success("采集成功！");
+    modalRef.value?.close();
+  } catch (e: unknown) {
+    error(`采集失败：${getErrorMessage(e)}`);
+  }
 };
 
 onMounted(async () => {

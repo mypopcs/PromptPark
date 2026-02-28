@@ -178,7 +178,12 @@ onMounted(async () => {
     categories.value = cats;
     allPrompts.value = pts;
     allTags.value = tags;
-    if (dics.length > 0) currentLibId.value = dics[0].id;
+    if (dics.length > 0) {
+      const firstDictionary = dics[0];
+      if (firstDictionary) {
+        currentLibId.value = firstDictionary.id;
+      }
+    }
     console.log("🎯 数据加载完成，当前词典ID:", currentLibId.value);
   } catch (error) {
     console.error("🎯 数据加载失败:", error);
@@ -189,7 +194,12 @@ onMounted(async () => {
 const currentLibCategoryIds = computed(() => {
   const lib = dictionaries.value.find((l) => l.id === currentLibId.value);
   const ids = lib?.categoryIds || [];
-  if (ids.length > 0 && !activeCatId.value) activeCatId.value = ids[0];
+  if (ids.length > 0 && !activeCatId.value) {
+    const firstCategoryId = ids[0];
+    if (firstCategoryId) {
+      activeCatId.value = firstCategoryId;
+    }
+  }
   return ids;
 });
 
