@@ -187,14 +187,25 @@ const handleModalSave = async () => {
   closeModal();
 };
 
+/**
+ * 危险删除二次确认。
+ * 第一次确认用于避免误触，第二次确认用于再次提示不可恢复风险。
+ */
+const confirmDangerousDelete = (targetName: string): boolean => {
+  const firstConfirm = window.confirm(`确定要删除${targetName}吗？`);
+  if (!firstConfirm) return false;
+  return window.confirm(`删除后将无法恢复，请再次确认删除${targetName}`);
+};
+
 const deletePlatform = async (id: string) => {
-  if (!confirm("确定删除？")) return;
+  if (!confirmDangerousDelete("该平台")) return;
   platforms.value = platforms.value.filter((p) => p.id !== id);
   await savePlatforms(platforms.value);
 };
 
 const deleteModel = async (modelId: string) => {
   if (!selectedPlatform.value) return;
+  if (!confirmDangerousDelete("该模型")) return;
   selectedPlatform.value.AIModelIds = selectedPlatform.value.AIModelIds.filter(
     (id) => id !== modelId,
   );

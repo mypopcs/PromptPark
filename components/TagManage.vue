@@ -97,6 +97,15 @@ const openModal = (row?: PromptTag) => {
 
 const closeModal = () => modalRef.value?.close();
 
+/**
+ * 危险删除二次确认。
+ */
+const confirmDangerousDelete = (targetName: string): boolean => {
+  const firstConfirm = window.confirm(`确定要删除${targetName}吗？`);
+  if (!firstConfirm) return false;
+  return window.confirm(`删除后将无法恢复，请再次确认删除${targetName}`);
+};
+
 const handleSave = async () => {
   if (!formData.value.name) return;
   if (isEdit.value) {
@@ -115,7 +124,7 @@ const handleSave = async () => {
 };
 
 const handleDelete = async (id: string) => {
-  if (!confirm("确定删除？")) return;
+  if (!confirmDangerousDelete("该标签")) return;
   tags.value = tags.value.filter((t) => t.id !== id);
   await saveTags(tags.value);
 };

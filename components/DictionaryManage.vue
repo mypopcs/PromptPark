@@ -269,8 +269,17 @@ const saveDict = async () => {
   dictModal.value?.close();
 };
 
+/**
+ * 危险删除二次确认。
+ */
+const confirmDangerousDelete = (targetName: string): boolean => {
+  const firstConfirm = window.confirm(`确定要删除${targetName}吗？`);
+  if (!firstConfirm) return false;
+  return window.confirm(`删除后将无法恢复，请再次确认删除${targetName}`);
+};
+
 const handleDeleteDict = async (id: string) => {
-  if (!confirm("确定删除词典？")) return;
+  if (!confirmDangerousDelete("该词典")) return;
   dictionaries.value = dictionaries.value.filter((d) => d.id !== id);
   await saveDictionaries(dictionaries.value);
 };
@@ -309,7 +318,7 @@ const saveCat = async () => {
 };
 
 const handleDeleteCat = async (catId: string) => {
-  if (!selectedDict.value || !confirm("确定删除该分类吗？")) return;
+  if (!selectedDict.value || !confirmDangerousDelete("该分类")) return;
   allCategories.value = allCategories.value.filter((c) => c.id !== catId);
   selectedDict.value.categoryIds = selectedDict.value.categoryIds.filter(
     (id) => id !== catId,
