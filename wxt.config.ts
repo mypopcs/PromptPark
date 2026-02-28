@@ -1,17 +1,41 @@
+import path from "node:path";
 import { defineConfig } from "wxt";
 import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
+import obfuscatorPlugin from "vite-plugin-javascript-obfuscator";
 import { AppConfig } from "./config/index";
 
-// WXT 配置文件，负责构建和 manifest 生成
+/**
+ * WXT 构建配置。
+ * 说明：
+ * 1. 插件基础信息统一读取全局配置。
+ * 2. 开发环境关闭混淆，生产环境启用代码混淆。
+ */
 export default defineConfig({
-  // 移除了引起报错的 imports.addons.vueTemplateImports
-
-  vite: () => ({
-    // 使用 as any 绕过 pnpm 环境下 Vite/Rollup 类型定义多版本冲突引起的报错
-    plugins: [vue() as any, tailwindcss()],
+  vite: ({ mode }) => ({
+    plugins: [
+      vue(),
+      tailwindcss(),
+      ...(mode === "production"
+        ? [
+            obfuscatorPlugin({
+              include: ["entrypoints/**/*.js", "chunks/**/*.js"],
+              options: {
+                compact: true,
+                disableConsoleOutput: true,
+                stringArray: true,
+                stringArrayEncoding: ["base64"]
+              }
+            })
+          ]
+        : [])
+    ],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, ".")
+      }
+    }
   }),
-
   manifest: {
     name: AppConfig.info.name,
     description: AppConfig.info.description,
@@ -22,17 +46,17 @@ export default defineConfig({
       "toggle-drawer": {
         suggested_key: {
           default: "Ctrl+Shift+E",
-          mac: "Command+Shift+E",
+          mac: "Command+Shift+E"
         },
-        description: "唤起/关闭 PromptPark 提示词抽屉",
+        description: "唤起/关闭 PromptPark 提示词抽屉"
       },
       "collect-prompt": {
         suggested_key: {
           default: "Ctrl+Shift+S",
-          mac: "Command+Shift+S",
+          mac: "Command+Shift+S"
         },
-        description: "采集当前网页选中的提示词",
-      },
-    },
-  },
+        description: "采集当前网页选中的提示词"
+      }
+    }
+  }
 });

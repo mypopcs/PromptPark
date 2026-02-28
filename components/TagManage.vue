@@ -58,9 +58,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useDangerousConfirm } from "@/composables/useDangerousConfirm";
 import { getTags, saveTags } from "@/utils/storage";
 import BaseTable from "./BaseTable.vue";
 import type { PromptTag } from "@/types";
+
+const { confirmDangerousDelete } = useDangerousConfirm();
 
 const tagColumns = [
   { key: "name", title: "标签名称" },
@@ -115,7 +118,7 @@ const handleSave = async () => {
 };
 
 const handleDelete = async (id: string) => {
-  if (!confirm("确定删除？")) return;
+  if (!(await confirmDangerousDelete("该标签"))) return;
   tags.value = tags.value.filter((t) => t.id !== id);
   await saveTags(tags.value);
 };

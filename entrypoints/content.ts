@@ -4,12 +4,17 @@ import Drawer from "@/components/Drawer.vue";
 import CollectModal from "@/components/CollectModal.vue";
 import "@/assets/tailwind.css";
 
+interface CollectModalExpose {
+  /** 打开采集弹窗并写入默认文本 */
+  show: (selectedText: string) => void;
+}
+
 export default defineContentScript({
   matches: ["<all_urls>"],
   cssInjectionMode: "ui",
   async main(ctx) {
-    let collectModalUi: any = null;
-    let collectModalInstance: any = null;
+    let collectModalUi: Awaited<ReturnType<typeof createShadowRootUi>> | null = null;
+    let collectModalInstance: CollectModalExpose | null = null;
 
     const ui = await createShadowRootUi(ctx, {
       name: "prompt-park-ui",
@@ -42,7 +47,7 @@ export default defineContentScript({
             onMount: (container) => {
               container.setAttribute("data-theme", "dark");
               const app = createApp(CollectModal);
-              collectModalInstance = app.mount(container);
+              collectModalInstance = app.mount(container) as unknown as CollectModalExpose;
               console.log(
                 "📥 CollectModal 实例创建完成:",
                 collectModalInstance,
@@ -89,7 +94,7 @@ export default defineContentScript({
     });
 
     let floatingButton: HTMLElement | null = null;
-    let hideButtonTimeout: any = null;
+    let hideButtonTimeout: ReturnType<typeof setTimeout> | null = null;
 
     console.log("🎯 Content script 已加载，开始监听 mouseup 事件");
 

@@ -113,6 +113,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useDangerousConfirm } from "@/composables/useDangerousConfirm";
 import {
   getPlatforms,
   savePlatforms,
@@ -120,6 +121,8 @@ import {
   saveModels,
 } from "@/utils/storage";
 import type { AIPlatform, AIModel } from "@/types";
+
+const { confirmDangerousDelete } = useDangerousConfirm();
 
 const platforms = ref<AIPlatform[]>([]);
 const allModels = ref<AIModel[]>([]);
@@ -188,13 +191,14 @@ const handleModalSave = async () => {
 };
 
 const deletePlatform = async (id: string) => {
-  if (!confirm("确定删除？")) return;
+  if (!(await confirmDangerousDelete("该平台"))) return;
   platforms.value = platforms.value.filter((p) => p.id !== id);
   await savePlatforms(platforms.value);
 };
 
 const deleteModel = async (modelId: string) => {
   if (!selectedPlatform.value) return;
+  if (!(await confirmDangerousDelete("该模型"))) return;
   selectedPlatform.value.AIModelIds = selectedPlatform.value.AIModelIds.filter(
     (id) => id !== modelId,
   );
