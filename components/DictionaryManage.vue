@@ -164,6 +164,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useConfirm } from "@/composables/useConfirm";
 import {
   getDictionaries,
   saveDictionaries,
@@ -172,6 +173,8 @@ import {
 } from "@/utils/storage";
 import type { Dictionary, Category } from "@/types";
 import BaseTable from "./BaseTable.vue";
+
+const { openConfirm } = useConfirm();
 
 const dictionaries = ref<Dictionary[]>([]);
 const allCategories = ref<Category[]>([]);
@@ -272,14 +275,14 @@ const saveDict = async () => {
 /**
  * 危险删除二次确认。
  */
-const confirmDangerousDelete = (targetName: string): boolean => {
-  const firstConfirm = window.confirm(`确定要删除${targetName}吗？`);
+const confirmDangerousDelete = async (targetName: string): Promise<boolean> => {
+  const firstConfirm = await openConfirm("危险操作确认", `确定要删除${targetName}吗？`);
   if (!firstConfirm) return false;
-  return window.confirm(`删除后将无法恢复，请再次确认删除${targetName}`);
+  return openConfirm("再次确认", `删除后将无法恢复，请再次确认删除${targetName}`);
 };
 
 const handleDeleteDict = async (id: string) => {
-  if (!confirmDangerousDelete("该词典")) return;
+  if (!(await confirmDangerousDelete("该词典"))) return;
   dictionaries.value = dictionaries.value.filter((d) => d.id !== id);
   await saveDictionaries(dictionaries.value);
 };
@@ -318,7 +321,7 @@ const saveCat = async () => {
 };
 
 const handleDeleteCat = async (catId: string) => {
-  if (!selectedDict.value || !confirmDangerousDelete("该分类")) return;
+  if (!selectedDict.value || !(await confirmDangerousDelete("该分类"))) return;
   allCategories.value = allCategories.value.filter((c) => c.id !== catId);
   selectedDict.value.categoryIds = selectedDict.value.categoryIds.filter(
     (id) => id !== catId,

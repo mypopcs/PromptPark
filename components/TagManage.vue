@@ -58,9 +58,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useConfirm } from "@/composables/useConfirm";
 import { getTags, saveTags } from "@/utils/storage";
 import BaseTable from "./BaseTable.vue";
 import type { PromptTag } from "@/types";
+
+const { openConfirm } = useConfirm();
 
 const tagColumns = [
   { key: "name", title: "标签名称" },
@@ -100,10 +103,10 @@ const closeModal = () => modalRef.value?.close();
 /**
  * 危险删除二次确认。
  */
-const confirmDangerousDelete = (targetName: string): boolean => {
-  const firstConfirm = window.confirm(`确定要删除${targetName}吗？`);
+const confirmDangerousDelete = async (targetName: string): Promise<boolean> => {
+  const firstConfirm = await openConfirm("危险操作确认", `确定要删除${targetName}吗？`);
   if (!firstConfirm) return false;
-  return window.confirm(`删除后将无法恢复，请再次确认删除${targetName}`);
+  return openConfirm("再次确认", `删除后将无法恢复，请再次确认删除${targetName}`);
 };
 
 const handleSave = async () => {
@@ -124,7 +127,7 @@ const handleSave = async () => {
 };
 
 const handleDelete = async (id: string) => {
-  if (!confirmDangerousDelete("该标签")) return;
+  if (!(await confirmDangerousDelete("该标签"))) return;
   tags.value = tags.value.filter((t) => t.id !== id);
   await saveTags(tags.value);
 };
