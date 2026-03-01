@@ -2,7 +2,6 @@
  * @file entrypoints/background.ts
  * @description Background 后台脚本：处理全局热键、后台任务、跨脚本消息路由
  */
-// import { defineBackground } from "wxt/sandbox";
 import { MessageAction, type MessagePayload } from "@/types";
 import { logger } from "@/utils/logger";
 
@@ -23,18 +22,9 @@ export default defineBackground(() => {
       });
       if (tab?.id) {
         // 向当前标签页的 Content Script 发送强类型消息，要求展开/收起 Drawer
-        const payload: MessagePayload = {
-          action: MessageAction.NOTIFY_CONTENT,
-        };
-
-        try {
-          await chrome.tabs.sendMessage(tab.id, payload);
-        } catch (error) {
-          logger.error(
-            "发送消息到 Content Script 失败 (可能目标网页不支持或插件尚未加载完毕):",
-            error,
-          );
-        }
+        chrome.tabs
+          .sendMessage(tab.id, { action: "toggleDrawer" })
+          .catch(() => {});
       }
     }
   });

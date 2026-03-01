@@ -23,6 +23,9 @@ export default defineConfig({
     description: "A powerful prompt manager",
     version: "1.0.0",
     permissions: [
+      "tabs", // 用于操作标签页
+      "scripting", // 用于执行脚本
+      "alarms", // 用于定时任务
       "storage", // 用于本地和同步存储
       "activeTab", // 获取当前标签页信息
       "contextMenus", // 右键菜单支持

@@ -1,64 +1,55 @@
-/**
- * @file composables/useConfirm.ts
- * @description 全局二次确认弹窗 Hook，支持 Promise 异步等待用户点击
- */
+// composables/useConfirm.ts
 import { reactive } from "vue";
 
-export interface ConfirmState {
+interface ConfirmState {
   isOpen: boolean;
   title: string;
-  content: string;
+  message: string;
+  type: "info" | "warning" | "danger";
   confirmText: string;
   cancelText: string;
-  type: "danger" | "warning" | "info";
-  resolve: (value: boolean) => void;
+  resolve: ((value: boolean) => void) | null;
 }
 
-// 初始化全局响应式状态
+// 极其优雅的单例模式：全局共享这一个 state
 const state = reactive<ConfirmState>({
   isOpen: false,
-  title: "提示",
-  content: "",
+  title: "",
+  message: "",
+  type: "info",
   confirmText: "确定",
   cancelText: "取消",
-  type: "warning",
-  resolve: () => {},
+  resolve: null,
 });
 
-export function useConfirm() {
+export const useConfirm = () => {
   /**
-   * 唤起确认弹窗
-   * @example const isOk = await confirm('确定要删除吗？');
+   * 唤起全局确认弹窗
+   * @param message 提示正文
+   * @param title 标题
+   * @param type 类型 (决定按钮颜色和图标)
+   * @param confirmText 确认按钮文字
+   * @param cancelText 取消按钮文字
    */
   const confirm = (
-    content: string,
-    title = "提示",
-    type: ConfirmState["type"] = "warning",
-    confirmText = "确定",
-    cancelText = "取消",
+    message: string,
+    title: string = "提示",
+    type: "info" | "warning" | "danger" = "warning",
+    confirmText: string = "确定",
+    cancelText: string = "取消",
   ): Promise<boolean> => {
+    state.message = message;
+    state.title = title;
+    state.type = type;
+    state.confirmText = confirmText;
+    state.cancelText = cancelText;
+    state.isOpen = true;
+
+    // 返回一个 Promise，等到用户点击弹窗按钮时才 resolve
     return new Promise((resolve) => {
-      state.title = title;
-      state.content = content;
-      state.type = type;
-      state.confirmText = confirmText;
-      state.cancelText = cancelText;
-      state.isOpen = true;
       state.resolve = resolve;
     });
   };
 
-  /**
-   * 处理用户的点击操作 (UI 组件调用)
-   */
-  const handleAction = (result: boolean) => {
-    state.isOpen = false;
-    state.resolve(result);
-  };
-
-  return {
-    state,
-    confirm,
-    handleAction,
-  };
-}
+  return { state, confirm };
+};

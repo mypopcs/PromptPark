@@ -4,10 +4,24 @@
       <div>
         <h1 class="text-2xl font-bold text-base-content">标签管理</h1>
         <p class="text-sm text-base-content/70 mt-1">
-          管理您的提示词分类标签，支持自定义颜色
+          管理系统中的所有标签，标签颜色将由系统自动生成绝美莫兰迪色
         </p>
       </div>
-      <button class="btn btn-primary shadow-sm" @click="openModal()">
+      <button class="btn btn-primary shadow-sm" @click="openModal">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="w-5 h-5"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 4.5v15m7.5-7.5h-15"
+          />
+        </svg>
         新建标签
       </button>
     </div>
@@ -20,9 +34,12 @@
         :total="tableData.length"
       >
         <template #cell-color="{ row }">
-          <span class="badge" :class="row.color || 'badge-neutral'">{{
-            row.name
-          }}</span>
+          <span
+            class="badge border-none text-white font-medium shadow-sm"
+            :style="{ backgroundColor: row.color }"
+          >
+            {{ row.name }}
+          </span>
         </template>
         <template #cell-actions="{ row }">
           <button
@@ -35,77 +52,51 @@
       </BaseTable>
     </div>
 
-    <dialog class="modal" :class="{ 'modal-open': isModalOpen }">
-      <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4">新增标签</h3>
-        <form @submit.prevent="saveData" class="space-y-4">
-          <div class="form-control">
-            <label class="label"
-              ><span class="label-text">标签名称 *</span></label
-            >
-            <input
-              v-model.trim="formData.name"
-              type="text"
-              class="input input-bordered"
-              required
-            />
-          </div>
-          <div class="form-control">
-            <label class="label"
-              ><span class="label-text">标签颜色</span></label
-            >
-            <select v-model="formData.color" class="select select-bordered">
-              <option value="badge-primary">主色调 (Primary)</option>
-              <option value="badge-secondary">次色调 (Secondary)</option>
-              <option value="badge-accent">强调色 (Accent)</option>
-              <option value="badge-info">信息蓝 (Info)</option>
-              <option value="badge-success">成功绿 (Success)</option>
-              <option value="badge-warning">警告黄 (Warning)</option>
-              <option value="badge-error">危险红 (Error)</option>
-              <option value="badge-neutral">中性灰 (Neutral)</option>
-            </select>
-          </div>
-          <div class="modal-action">
-            <button
-              type="button"
-              class="btn btn-ghost"
-              @click="isModalOpen = false"
-            >
-              取消
-            </button>
-            <button type="submit" class="btn btn-primary">保存</button>
-          </div>
-        </form>
+    <BaseModal
+      v-model="isModalOpen"
+      title="新建标签"
+      confirmText="保存标签"
+      @confirm="saveData"
+    >
+      <div class="form-control w-full">
+        <label class="label"
+          ><span class="label-text font-medium"
+            >标签名称 <span class="text-error">*</span></span
+          ></label
+        >
+        <input
+          v-model.trim="formData.name"
+          type="text"
+          placeholder="例如: Midjourney 咒语"
+          class="input input-bordered w-full"
+          @keydown.enter="saveData"
+        />
+        <p class="text-xs text-base-content/50 mt-2">
+          提示：系统将为您自动分配一个不重复的高级柔和色彩。
+        </p>
       </div>
-      <form
-        method="dialog"
-        class="modal-backdrop"
-        @click.prevent="isModalOpen = false"
-      >
-        <button>关闭</button>
-      </form>
-    </dialog>
+    </BaseModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import BaseTable, { type TableColumn } from "@/components/ui/BaseTable.vue";
+import BaseModal from "@/components/ui/BaseModal.vue"; // 引入通用弹窗
 import type { TagItem } from "@/types";
 import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
 import { useConfirm } from "@/composables/useConfirm";
 import { useMessage } from "@/composables/useMessage";
-import { createDefaultTag } from "@/utils/factories"; // 👈 引入工厂
+import { createDefaultTag } from "@/utils/factories";
 
 const { confirm } = useConfirm();
-const { success } = useMessage();
+const { success, warning } = useMessage();
 
 const tableData = ref<TagItem[]>([]);
 const isLoading = ref(false);
 const isModalOpen = ref(false);
 
-// 👈 1. 极其干净的初始化
 const formData = ref<TagItem>(createDefaultTag());
 
 const columns: TableColumn<TagItem>[] = [
@@ -122,15 +113,18 @@ const loadData = async () => {
 };
 
 const openModal = () => {
-  formData.value = createDefaultTag(); // 👈 2. 极其干净的重置
+  formData.value = createDefaultTag(); // ID 和 颜色 都在这里全自动生成好了！
   isModalOpen.value = true;
 };
 
 const saveData = async () => {
-  // 👈 3. 不需要再手动塞 ID 了，工厂已经生成好了
+  if (!formData.value.name) {
+    warning("请填写标签名称");
+    return;
+  }
   const newList = [formData.value, ...tableData.value];
   await localStore.set(STORAGE_KEYS.TAGS, newList);
-  success("保存成功");
+  success("标签保存成功");
   isModalOpen.value = false;
   await loadData();
 };

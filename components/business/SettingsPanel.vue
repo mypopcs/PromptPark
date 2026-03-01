@@ -434,6 +434,7 @@ const loadSettings = async () => {
 const saveSettings = async () => {
   // 当主题改变时立刻生效
   setTheme(formData.value.theme);
+  // 🌟 存入 chrome.storage，此时 Content Script 会立刻收到 onChange 信
   await syncStore.set(STORAGE_KEYS.SETTINGS, formData.value);
   // 不弹 toast 防止频繁打扰，这属于静默保存
 };

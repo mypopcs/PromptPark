@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full bg-base-100 flex flex-col text-base-content">
+  <div class="bg-base-100 flex flex-col text-base-content">
     <header
       class="flex-none p-4 border-b border-base-200 flex items-center justify-between bg-base-200/50"
     >
@@ -48,15 +48,6 @@
     </header>
 
     <main class="flex-1 p-4 flex flex-col gap-4 overflow-y-auto">
-      <div class="form-control w-full shrink-0">
-        <input
-          v-model="searchKeyword"
-          type="text"
-          placeholder="搜索提示词或中文解释..."
-          class="input input-sm input-bordered w-full rounded-full"
-        />
-      </div>
-
       <button
         class="btn btn-primary btn-sm w-full shadow-sm"
         @click="togglePageDrawer"
@@ -77,36 +68,6 @@
         </svg>
         在当前网页打开侧边栏
       </button>
-
-      <div class="divider my-0 text-xs text-base-content/50">常用提示词</div>
-
-      <ul class="space-y-2 flex-1">
-        <li
-          v-for="item in filteredPrompts"
-          :key="item.id"
-          class="card bg-base-200/50 hover:bg-base-200 cursor-pointer transition-colors border border-base-300"
-          @click="copyPrompt(item)"
-        >
-          <div class="card-body p-3">
-            <h3 class="font-medium text-sm truncate" :title="item.translation">
-              {{ item.translation }}
-            </h3>
-            <p
-              class="text-xs text-base-content/60 truncate"
-              :title="item.prompt"
-            >
-              {{ item.prompt }}
-            </p>
-          </div>
-        </li>
-        <div
-          v-if="filteredPrompts.length === 0"
-          class="text-center py-8 text-xs text-base-content/50"
-        >
-          <span v-if="prompts.length === 0">暂无数据，请前往管理后台添加</span>
-          <span v-else>未找到匹配的提示词</span>
-        </div>
-      </ul>
     </main>
   </div>
   <AppToast />
@@ -176,18 +137,22 @@ const copyPrompt = async (item: PromptItem) => {
 };
 
 const togglePageDrawer = async () => {
+  console.log("togglePageDrawer");
   try {
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-    if (tab?.id) {
-      const payload: MessagePayload = { action: MessageAction.NOTIFY_CONTENT };
-      await chrome.tabs.sendMessage(tab.id, payload);
-      window.close();
+    if (typeof chrome !== "undefined" && chrome.tabs) {
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (tab?.id) {
+        await chrome.tabs.sendMessage(tab.id, {
+          action: "toggleDrawer",
+        });
+        window.close(); // 自动关闭弹窗
+      }
     }
-  } catch (err) {
-    error("无法在此页面打开侧边栏");
+  } catch (error) {
+    console.error("打开 Drawer 失败:", error);
   }
 };
 </script>

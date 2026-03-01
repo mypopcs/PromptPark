@@ -54,13 +54,22 @@ export const createDefaultModel = (
   promptCount: 0,
 });
 
+// 🌟 新增：高级柔和色 (莫兰迪色系) 生成器
+const generatePastelColor = () => {
+  const h = Math.floor(Math.random() * 360); // 随机色相 0-360
+  const s = Math.floor(Math.random() * 20) + 60; // 饱和度控制在 60%-80%
+  const l = Math.floor(Math.random() * 10) + 65; // 亮度控制在 65%-75% (保证文字可读性)
+  return `hsl(${h}, ${s}%, ${l}%)`;
+};
+
 export const createDefaultTag = (
   name: string = "",
-  color: string = "badge-primary",
+  color: string = "",
 ): TagItem => ({
   id: crypto.randomUUID(),
   name,
-  color,
+  // 如果没有传入颜色，自动生成一个绝美的高级颜色
+  color: color || generatePastelColor(),
   createdAt: Date.now(),
   promptCount: 0,
 });

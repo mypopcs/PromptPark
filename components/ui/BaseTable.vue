@@ -107,17 +107,17 @@
           :disabled="currentPage === 1 || loading"
           @click="changePage(currentPage - 1)"
         >
-          上一页
+          <<
         </button>
         <button class="join-item btn btn-sm no-animation pointer-events-none">
-          第 {{ currentPage }} 页
+          {{ currentPage }}
         </button>
         <button
           class="join-item btn btn-sm"
           :disabled="currentPage * pageSize >= total || loading"
           @click="changePage(currentPage + 1)"
         >
-          下一页
+          >>
         </button>
       </div>
     </div>
