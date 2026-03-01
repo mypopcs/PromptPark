@@ -147,28 +147,35 @@
             />
           </div>
 
-          <div class="flex items-center gap-6 mt-4">
-            <div class="form-control w-full max-w-xs">
-              <label class="label"
+          <div class="grid grid-cols-2 gap-6 mt-2">
+            <div class="form-control w-full">
+              <label class="label pt-0"
                 ><span class="label-text font-medium"
-                  >封面图链接 (URL)</span
+                  >词典封面图 (可选)</span
                 ></label
               >
-              <input
-                v-model.trim="formData.coverImage"
-                type="url"
-                placeholder="https://..."
-                class="input input-sm input-bordered w-full"
-              />
+              <ImageUpload v-model="formData.coverImage" />
             </div>
-            <label class="cursor-pointer label flex gap-2 mt-7">
-              <span class="label-text font-medium">设为官方推荐</span>
-              <input
-                v-model="formData.isOfficialRecommended"
-                type="checkbox"
-                class="toggle toggle-success"
-              />
-            </label>
+
+            <div class="form-control w-full flex flex-col justify-center">
+              <label
+                class="cursor-pointer label flex gap-4 justify-start p-4 bg-base-200/30 rounded-box border border-base-200"
+              >
+                <input
+                  v-model="formData.isOfficialRecommended"
+                  type="checkbox"
+                  class="toggle toggle-success"
+                />
+                <div>
+                  <span class="label-text font-medium block text-base"
+                    >设为官方推荐</span
+                  >
+                  <span class="label-text-alt text-base-content/50"
+                    >在前端页面展示专属高亮标识</span
+                  >
+                </div>
+              </label>
+            </div>
           </div>
 
           <div class="modal-action mt-8">
@@ -190,6 +197,7 @@
 import { ref, onMounted } from "vue";
 import BaseTable, { type TableColumn } from "@/components/ui/BaseTable.vue";
 import MultiSelectInput from "@/components/ui/MultiSelectInput.vue";
+import ImageUpload from "@/components/ui/ImageUpload.vue";
 import type { DictionaryItem, CategoryItem } from "@/types";
 import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";

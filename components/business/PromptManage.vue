@@ -33,6 +33,14 @@
         :loading="isLoading"
         :total="prompts.length"
       >
+        <template #cell-thumbnail="{ row }">
+          <div class="avatar" v-if="row.thumbnail">
+            <div class="w-10 h-10 rounded">
+              <img :src="row.thumbnail" alt="Thumb" class="object-cover" />
+            </div>
+          </div>
+          <span v-else class="text-xs text-base-content/30">-</span>
+        </template>
         <template #cell-prompt="{ row }">
           <div class="max-w-[200px] truncate font-medium" :title="row.prompt">
             {{ row.prompt }}
@@ -224,34 +232,47 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div class="form-control w-full">
-              <label class="label">
-                <span class="label-text font-medium"
-                  >关联标签 <span class="text-error">*</span></span
+          <div class="grid grid-cols-3 gap-4">
+            <div class="col-span-2 space-y-4">
+              <div class="form-control w-full">
+                <label class="label">
+                  <span class="label-text font-medium"
+                    >关联标签 <span class="text-error">*</span></span
+                  >
+                  <span class="label-text-alt text-base-content/50"
+                    >回车创建</span
+                  >
+                </label>
+                <MultiSelectInput
+                  v-model="formData.tags"
+                  :options="tagsList"
+                  :allowCreate="true"
+                  placeholder="选择或输入新标签并回车..."
+                  @create="handleCreateTag"
+                />
+              </div>
+              <div class="form-control w-full">
+                <label class="label"
+                  ><span class="label-text font-medium"
+                    >备注 (Notes)</span
+                  ></label
                 >
-                <span class="label-text-alt text-base-content/50"
-                  >输入后回车可快捷创建</span
-                >
-              </label>
-              <MultiSelectInput
-                v-model="formData.tags"
-                :options="tagsList"
-                :allowCreate="true"
-                placeholder="选择或输入新标签并回车..."
-                @create="handleCreateTag"
-              />
+                <input
+                  v-model.trim="formData.notes"
+                  type="text"
+                  class="input input-bordered w-full"
+                  placeholder="可选..."
+                />
+              </div>
             </div>
+
             <div class="form-control w-full">
               <label class="label"
-                ><span class="label-text font-medium">备注 (Notes)</span></label
+                ><span class="label-text font-medium"
+                  >提示词缩略图 (可选)</span
+                ></label
               >
-              <input
-                v-model.trim="formData.notes"
-                type="text"
-                class="input input-bordered w-full"
-                placeholder="可选..."
-              />
+              <ImageUpload v-model="formData.thumbnail" />
             </div>
           </div>
         </form>
@@ -276,6 +297,7 @@
 import { ref, computed, onMounted } from "vue";
 import BaseTable, { type TableColumn } from "@/components/ui/BaseTable.vue";
 import MultiSelectInput from "@/components/ui/MultiSelectInput.vue";
+import ImageUpload from "@/components/ui/ImageUpload.vue";
 import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
 import { useConfirm } from "@/composables/useConfirm";
@@ -308,6 +330,7 @@ const isEdit = ref(false);
 const formData = ref<PromptItem>(createDefaultPrompt());
 // --- 表格列定义 ---
 const columns: TableColumn<PromptItem>[] = [
+  { key: "thumbnail", label: "封面", width: "8%" },
   { key: "prompt", label: "提示词 / 翻译", width: "30%" },
   { key: "dictionaryId", label: "所属词典 / 分类", width: "20%" },
   { key: "tags", label: "标签", width: "15%" },

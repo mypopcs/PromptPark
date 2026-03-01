@@ -16,17 +16,37 @@ export const STORAGE_KEYS = {
   SETTINGS: "pp_settings",
   PROMPTS: "pp_prompts",
   DICTIONARIES: "pp_dictionaries",
-  CATEGORIES: "pp_categories", // 分类
+  CATEGORIES: "pp_categories",
   TAGS: "pp_tags",
   PLATFORMS: "pp_platforms",
-  MODELS: "pp_models", // 模型
+  MODELS: "pp_models",
 } as const;
+
+const emptyTableMapping = {
+  promptsTableId: "",
+  dictionariesTableId: "",
+  categoriesTableId: "",
+  platformsTableId: "",
+  modelsTableId: "",
+  tagsTableId: "",
+};
 
 // 3. 默认设置
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: "system",
   locale: "zh-CN",
-  syncEnabled: false,
+  syncProvider: "none",
+  imageHostProvider: "none",
+
+  githubSync: { token: "", gistId: "" },
+  feishuSync: {
+    appId: "",
+    appSecret: "",
+    appToken: "",
+    mapping: { ...emptyTableMapping },
+  },
+  notionSync: { token: "", mapping: { ...emptyTableMapping } },
+  githubImageHost: { token: "", repo: "", branch: "main", path: "uploads/" },
 };
 
 // 4. 主题配置选项

@@ -101,12 +101,60 @@ export interface PromptItem {
 export type ThemeType = "light" | "dark" | "system";
 export type LocaleType = "zh-CN" | "en-US";
 
+// 支持的同步提供商
+export type SyncProviderType = "github" | "feishu" | "notion" | "none";
+// 支持的图床提供商
+export type ImageHostProviderType = "github" | "none";
+
+// 多表映射关系 (飞书/Notion 必备)
+export interface TableMapping {
+  promptsTableId: string; // 提示词表 ID
+  dictionariesTableId: string; // 词典表 ID
+  categoriesTableId: string; // 分类表 ID
+  platformsTableId: string; // 平台表 ID
+  modelsTableId: string; // 模型表 ID
+  tagsTableId: string; // 标签表 ID
+}
+
+// 各平台的专属配置参数
+export interface GithubSyncConfig {
+  token: string;
+  gistId: string;
+}
+
+export interface FeishuSyncConfig {
+  appId: string; // 自建应用的 App ID
+  appSecret: string; // 自建应用的 App Secret
+  appToken: string; // 多维表格的 App Token (URL 中 base/ 后面的部分)
+  mapping: TableMapping; // 绑定的数据表 ID 映射
+}
+
+export interface NotionSyncConfig {
+  token: string; // Notion Integration Token
+  mapping: TableMapping; // 绑定的 Database ID 映射
+}
+
+export interface GithubImageHostConfig {
+  token: string;
+  repo: string; // 例如: "username/repo-name"
+  branch: string; // 例如: "main"
+  path: string; // 例如: "images/"
+}
+
+// 聚合的全局设置
 export interface AppSettings {
   theme: ThemeType;
   locale: LocaleType;
-  syncEnabled: boolean;
-  githubToken?: string;
-  gistId?: string;
+
+  // 核心开关
+  syncProvider: SyncProviderType;
+  imageHostProvider: ImageHostProviderType;
+
+  // 各平台配置项保存区 (即便切换提供商，配置也保留)
+  githubSync: GithubSyncConfig;
+  feishuSync: FeishuSyncConfig;
+  notionSync: NotionSyncConfig;
+  githubImageHost: GithubImageHostConfig;
 }
 
 // ==========================================
@@ -122,12 +170,4 @@ export enum MessageAction {
 export interface MessagePayload<T = unknown> {
   action: MessageAction;
   data?: T;
-}
-
-// ==========================================
-// 4. UI 组件专用类型 (保持不变)
-// ==========================================
-export interface TableSortOption<T> {
-  key: keyof T;
-  order: "asc" | "desc" | null;
 }

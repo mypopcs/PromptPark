@@ -3,38 +3,128 @@
     <div class="card bg-base-100 shadow-sm border border-base-200">
       <div class="card-body">
         <h2 class="card-title text-lg border-b border-base-200 pb-2 mb-4">
-          外观设置
+          全局设置
         </h2>
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="font-medium text-base-content">主题外观</div>
-            <div class="text-sm text-base-content/70">
-              选择您喜欢的主题模式（支持跟随系统）
+        <div class="grid grid-cols-2 gap-8">
+          <div class="form-control w-full">
+            <label class="label"
+              ><span class="label-text font-medium">主题外观</span></label
+            >
+            <select
+              class="select select-bordered w-full"
+              v-model="formData.theme"
+              @change="saveSettings"
+            >
+              <option
+                v-for="opt in THEME_OPTIONS"
+                :key="opt.value"
+                :value="opt.value"
+              >
+                {{ opt.label }}
+              </option>
+            </select>
+          </div>
+          <div class="form-control w-full">
+            <label class="label"
+              ><span class="label-text font-medium">图床引擎</span></label
+            >
+            <select
+              class="select select-bordered w-full"
+              v-model="formData.imageHostProvider"
+              @change="saveSettings"
+            >
+              <option value="none">不使用图床 (转为 Base64 存本地)</option>
+              <option value="github">Github Repo (推荐)</option>
+            </select>
+          </div>
+        </div>
+
+        <div
+          v-if="formData.imageHostProvider === 'github'"
+          class="mt-6 space-y-4 animate-fade-in bg-base-200/50 p-4 rounded-box"
+        >
+          <div
+            class="font-medium text-sm text-primary mb-2 flex justify-between items-center"
+          >
+            Github 仓库图床配置
+            <a
+              href="https://github.com/new"
+              target="_blank"
+              class="text-xs link link-primary font-normal"
+              >去新建一个公开仓库</a
+            >
+          </div>
+          <div class="form-control w-full">
+            <label class="label py-1"
+              ><span class="label-text text-xs"
+                >Github Token (必须包含 repo 权限)</span
+              ></label
+            >
+            <input
+              v-model.trim="formData.githubImageHost.token"
+              type="password"
+              class="input input-bordered input-sm w-full"
+              placeholder="ghp_..."
+              @blur="saveSettings"
+            />
+          </div>
+          <div class="grid grid-cols-3 gap-4">
+            <div class="form-control w-full">
+              <label class="label py-1"
+                ><span class="label-text text-xs"
+                  >仓库 (用户名/仓库名)</span
+                ></label
+              >
+              <input
+                v-model.trim="formData.githubImageHost.repo"
+                type="text"
+                placeholder="例如: zhangsan/images"
+                class="input input-bordered input-sm w-full"
+                @blur="saveSettings"
+              />
+            </div>
+            <div class="form-control w-full">
+              <label class="label py-1"
+                ><span class="label-text text-xs">分支</span></label
+              >
+              <input
+                v-model.trim="formData.githubImageHost.branch"
+                type="text"
+                placeholder="例如: main"
+                class="input input-bordered input-sm w-full"
+                @blur="saveSettings"
+              />
+            </div>
+            <div class="form-control w-full">
+              <label class="label py-1"
+                ><span class="label-text text-xs"
+                  >存储路径 (留空放根目录)</span
+                ></label
+              >
+              <input
+                v-model.trim="formData.githubImageHost.path"
+                type="text"
+                placeholder="例如: uploads/"
+                class="input input-bordered input-sm w-full"
+                @blur="saveSettings"
+              />
             </div>
           </div>
-          <select
-            class="select select-bordered w-48"
-            :value="currentTheme"
-            @change="handleThemeChange"
-          >
-            <option
-              v-for="opt in THEME_OPTIONS"
-              :key="opt.value"
-              :value="opt.value"
-            >
-              {{ opt.label }}
-            </option>
-          </select>
+          <p class="text-xs text-base-content/50 mt-2">
+            * 提示：上传的图片将通过
+            <b>jsDelivr CDN</b> 加速分发，请确保您的仓库是
+            <b>Public (公开)</b> 的，否则无法正常显示图片。
+          </p>
         </div>
       </div>
     </div>
 
     <div class="card bg-base-100 shadow-sm border border-base-200">
       <div class="card-body">
-        <h2
-          class="card-title text-lg border-b border-base-200 pb-2 mb-4 flex justify-between items-center"
+        <div
+          class="flex justify-between items-center border-b border-base-200 pb-2 mb-4"
         >
-          <div class="flex items-center gap-2">
+          <h2 class="card-title text-lg flex items-center gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -52,135 +142,192 @@
               />
               <path d="M9 18c-4.51 2-5-2-7-2" />
             </svg>
-            Github Gist 同步
-          </div>
-          <span v-if="isValidated" class="badge badge-success badge-sm gap-1">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-3 w-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+            多端数据同步引擎
+          </h2>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-base-content/70">当前引擎：</span>
+            <select
+              class="select select-bordered select-sm w-40"
+              v-model="formData.syncProvider"
+              @change="saveSettings"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-            已连接
-          </span>
-        </h2>
+              <option value="none">停用同步</option>
+              <option value="github">Github Gist</option>
+              <option value="feishu">飞书多维表格</option>
+              <option value="notion">Notion Database</option>
+            </select>
+          </div>
+        </div>
 
-        <div class="space-y-6">
+        <div
+          v-if="formData.syncProvider === 'none'"
+          class="text-center py-8 text-base-content/50 text-sm"
+        >
+          数据同步功能已停用。您的数据目前仅保存在浏览器本地。
+        </div>
+
+        <div
+          v-if="formData.syncProvider === 'github'"
+          class="space-y-4 animate-fade-in"
+        >
           <div class="form-control w-full">
             <label class="label">
               <span class="label-text font-medium"
                 >Github Personal Access Token</span
               >
               <a
-                href="https://github.com/settings/tokens/new?scopes=gist&description=PromptPark+Sync"
+                href="https://github.com/settings/tokens/new"
                 target="_blank"
                 class="label-text-alt link link-primary"
-                >获取 Token (需勾选 gist 权限)</a
+                >获取 Token</a
               >
-            </label>
-            <div class="flex gap-2">
-              <input
-                v-model.trim="githubToken"
-                type="password"
-                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                class="input input-bordered flex-1"
-              />
-              <button
-                class="btn btn-primary"
-                :disabled="!githubToken || isTesting"
-                @click="verifyAndSaveToken"
-              >
-                <span
-                  v-if="isTesting"
-                  class="loading loading-spinner loading-xs"
-                ></span>
-                {{ isValidated ? "更新 Token" : "验证并保存" }}
-              </button>
-            </div>
-            <p class="text-xs text-base-content/50 mt-1">
-              您的 Token 仅保存在浏览器本地，绝不会上传至任何第三方服务器。
-            </p>
-          </div>
-
-          <div class="form-control w-full">
-            <label class="label">
-              <span class="label-text font-medium">Gist ID (备份文件标识)</span>
             </label>
             <input
-              v-model.trim="gistId"
-              type="text"
-              placeholder="留空将在首次同步时自动创建，若需恢复数据请填入旧 ID"
-              class="input input-bordered w-full font-mono text-sm"
+              v-model.trim="formData.githubSync.token"
+              type="password"
+              class="input input-bordered w-full"
+              placeholder="ghp_..."
+              @blur="saveSettings"
             />
-            <p class="text-xs text-base-content/50 mt-1">
-              自动创建后此 ID 会自动填充，请妥善保管该 ID
-              以便在其他设备上恢复数据。
-            </p>
+          </div>
+          <div class="form-control w-full">
+            <label class="label"
+              ><span class="label-text font-medium"
+                >Gist ID (留空则自动创建)</span
+              ></label
+            >
+            <input
+              v-model.trim="formData.githubSync.gistId"
+              type="text"
+              class="input input-bordered w-full font-mono text-sm"
+              @blur="saveSettings"
+            />
+          </div>
+        </div>
+
+        <div
+          v-if="formData.syncProvider === 'feishu'"
+          class="space-y-4 animate-fade-in"
+        >
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-control w-full">
+              <label class="label"
+                ><span class="label-text font-medium">App ID</span></label
+              >
+              <input
+                v-model.trim="formData.feishuSync.appId"
+                type="text"
+                class="input input-bordered w-full"
+                @blur="saveSettings"
+              />
+            </div>
+            <div class="form-control w-full">
+              <label class="label"
+                ><span class="label-text font-medium">App Secret</span></label
+              >
+              <input
+                v-model.trim="formData.feishuSync.appSecret"
+                type="password"
+                class="input input-bordered w-full"
+                @blur="saveSettings"
+              />
+            </div>
+          </div>
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text font-medium">多维表格 App Token</span>
+              <span class="label-text-alt text-base-content/50"
+                >URL 中 base/ 后面的字符</span
+              >
+            </label>
+            <input
+              v-model.trim="formData.feishuSync.appToken"
+              type="text"
+              class="input input-bordered w-full"
+              @blur="saveSettings"
+            />
           </div>
 
-          <div class="flex gap-4 pt-4 border-t border-base-200">
-            <button
-              class="btn btn-neutral flex-1"
-              :disabled="!isValidated || isPushing || isPulling"
-              @click="handlePush"
-            >
-              <span
-                v-if="isPushing"
-                class="loading loading-spinner loading-xs"
-              ></span>
-              <svg
-                v-else
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="2"
-                stroke="currentColor"
-                class="w-4 h-4"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"
-                />
-              </svg>
-              将本地数据推送到云端
-            </button>
-
-            <button
-              class="btn btn-outline btn-primary flex-1"
-              :disabled="!isValidated || !gistId || isPushing || isPulling"
-              @click="handlePull"
-            >
-              <span
-                v-if="isPulling"
-                class="loading loading-spinner loading-xs"
-              ></span>
-              <svg
-                v-else
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="2"
-                stroke="currentColor"
-                class="w-4 h-4"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M12 9.75v6.75m0 0l-3-3m3 3l3-3m-8.25 6a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"
-                />
-              </svg>
-              从云端拉取并覆盖本地
-            </button>
+          <div class="divider text-xs text-base-content/50">
+            多表映射关系 (Table ID)
           </div>
+          <div class="grid grid-cols-3 gap-4 bg-base-200/50 p-4 rounded-box">
+            <div class="form-control" v-for="key in tableKeys" :key="key.id">
+              <label class="label py-1"
+                ><span class="label-text text-xs">{{ key.label }}</span></label
+              >
+              <input
+                v-model.trim="formData.feishuSync.mapping[key.id]"
+                type="text"
+                class="input input-bordered input-sm w-full"
+                @blur="saveSettings"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="formData.syncProvider === 'notion'"
+          class="space-y-4 animate-fade-in"
+        >
+          <div class="form-control w-full">
+            <label class="label"
+              ><span class="label-text font-medium"
+                >Notion Integration Token</span
+              ></label
+            >
+            <input
+              v-model.trim="formData.notionSync.token"
+              type="password"
+              class="input input-bordered w-full"
+              @blur="saveSettings"
+            />
+          </div>
+          <div class="divider text-xs text-base-content/50">
+            Database ID 映射
+          </div>
+          <div class="grid grid-cols-3 gap-4 bg-base-200/50 p-4 rounded-box">
+            <div class="form-control" v-for="key in tableKeys" :key="key.id">
+              <label class="label py-1"
+                ><span class="label-text text-xs">{{ key.label }}</span></label
+              >
+              <input
+                v-model.trim="formData.notionSync.mapping[key.id]"
+                type="text"
+                class="input input-bordered input-sm w-full"
+                @blur="saveSettings"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="formData.syncProvider !== 'none'"
+          class="flex gap-4 pt-6 mt-4 border-t border-base-200"
+        >
+          <button
+            class="btn btn-neutral flex-1"
+            :disabled="isSyncing"
+            @click="handlePush"
+          >
+            <span
+              v-if="isSyncing"
+              class="loading loading-spinner loading-xs"
+            ></span>
+            上云：覆盖云端数据
+          </button>
+
+          <button
+            class="btn btn-outline btn-primary flex-1"
+            :disabled="isSyncing"
+            @click="handlePull"
+          >
+            <span
+              v-if="isSyncing"
+              class="loading loading-spinner loading-xs"
+            ></span>
+            下云：覆盖本地数据
+          </button>
         </div>
       </div>
     </div>
@@ -196,7 +343,7 @@
           <div>
             <div class="font-medium text-error">清空本地所有数据</div>
             <div class="text-sm text-error/70">
-              将永久删除本地存储的所有提示词、词典和设置，不可恢复。（不影响云端数据）
+              将永久删除本地存储的所有提示词和设置，不可恢复。（不影响云端数据）
             </div>
           </div>
           <button class="btn btn-error" @click="handleClearData">
@@ -215,137 +362,199 @@ import { useConfirm } from "@/composables/useConfirm";
 import { useMessage } from "@/composables/useMessage";
 import { localStore, syncStore } from "@/utils/storage";
 import { STORAGE_KEYS, DEFAULT_SETTINGS } from "@/config";
-import type { ThemeType, AppSettings } from "@/types";
-import { githubSync } from "@/utils/githubSync";
+import type {
+  AppSettings,
+  TableMapping,
+  PromptItem,
+  DictionaryItem,
+  CategoryItem,
+  PlatformItem,
+  AIModelItem,
+  TagItem,
+} from "@/types";
+import type { SyncDataPayload } from "@/utils/sync";
+import { SyncFactory } from "@/utils/sync/SyncFactory";
 
-const { currentTheme, setTheme, THEME_OPTIONS } = useTheme();
+const { setTheme, THEME_OPTIONS } = useTheme();
 const { confirm } = useConfirm();
-const { success, error, warning } = useMessage();
+const { success, error } = useMessage();
 
-// --- 状态定义 ---
-const githubToken = ref("");
-const gistId = ref("");
-const isValidated = ref(false);
+const isSyncing = ref(false);
 
-const isTesting = ref(false);
-const isPushing = ref(false);
-const isPulling = ref(false);
+// 用于循环渲染 6 个表的映射输入框 (Type-safe)
+const tableKeys: { id: keyof TableMapping; label: string }[] = [
+  { id: "promptsTableId", label: "提示词表 ID" },
+  { id: "dictionariesTableId", label: "词典表 ID" },
+  { id: "categoriesTableId", label: "分类表 ID" },
+  { id: "platformsTableId", label: "平台表 ID" },
+  { id: "modelsTableId", label: "模型表 ID" },
+  { id: "tagsTableId", label: "标签表 ID" },
+];
 
-// --- 初始化加载设置 ---
-onMounted(async () => {
-  const settings =
-    (await syncStore.get<AppSettings>(STORAGE_KEYS.SETTINGS)) ||
-    DEFAULT_SETTINGS;
-  githubToken.value = settings.githubToken || "";
-  gistId.value = settings.gistId || "";
-  // 如果本地有 Token，默认认为验证通过（为了防止每次打开都发请求，实际验证在保存或同步时拦截）
-  if (githubToken.value) isValidated.value = true;
-});
+// 极其严谨的表单状态初始化，彻底杜绝 undefined 导致的 v-model 报错
+const formData = ref<AppSettings>(JSON.parse(JSON.stringify(DEFAULT_SETTINGS)));
 
-// --- 主题切换 ---
-const handleThemeChange = (e: Event) => {
-  const target = e.target as HTMLSelectElement;
-  setTheme(target.value as ThemeType);
+// --- 加载与保存设置 ---
+const loadSettings = async () => {
+  const storedSettings = await syncStore.get<AppSettings>(
+    STORAGE_KEYS.SETTINGS,
+  );
+
+  // 深度防御：如果本地缓存缺少某些嵌套对象(由于版本升级)，进行深度合并
+  formData.value = {
+    ...DEFAULT_SETTINGS,
+    ...(storedSettings || {}),
+    githubSync: {
+      ...DEFAULT_SETTINGS.githubSync,
+      ...(storedSettings?.githubSync || {}),
+    },
+    feishuSync: {
+      ...DEFAULT_SETTINGS.feishuSync,
+      ...(storedSettings?.feishuSync || {}),
+      mapping: {
+        ...DEFAULT_SETTINGS.feishuSync.mapping,
+        ...(storedSettings?.feishuSync?.mapping || {}),
+      },
+    },
+    notionSync: {
+      ...DEFAULT_SETTINGS.notionSync,
+      ...(storedSettings?.notionSync || {}),
+      mapping: {
+        ...DEFAULT_SETTINGS.notionSync.mapping,
+        ...(storedSettings?.notionSync?.mapping || {}),
+      },
+    },
+    githubImageHost: {
+      ...DEFAULT_SETTINGS.githubImageHost,
+      ...(storedSettings?.githubImageHost || {}),
+    },
+  };
 };
 
-// --- Github Token 校验与保存 ---
-const verifyAndSaveToken = async () => {
-  if (!githubToken.value) return;
-
-  isTesting.value = true;
-  isValidated.value = false;
-
-  const isOk = await githubSync.testToken(githubToken.value);
-  if (isOk) {
-    const settings =
-      (await syncStore.get<AppSettings>(STORAGE_KEYS.SETTINGS)) ||
-      DEFAULT_SETTINGS;
-    settings.githubToken = githubToken.value;
-
-    // 如果用户修改了 Gist ID，一并保存
-    if (gistId.value) settings.gistId = gistId.value;
-
-    await syncStore.set(STORAGE_KEYS.SETTINGS, settings);
-    isValidated.value = true;
-    success("Token 验证通过并已安全保存！");
-  } else {
-    error("Token 无效或权限不足，请检查！");
-  }
-  isTesting.value = false;
+const saveSettings = async () => {
+  // 当主题改变时立刻生效
+  setTheme(formData.value.theme);
+  await syncStore.set(STORAGE_KEYS.SETTINGS, formData.value);
+  // 不弹 toast 防止频繁打扰，这属于静默保存
 };
 
-// --- 上推到云端 (Push) ---
+onMounted(() => loadSettings());
+
+// --- 本地数据打包与解包逻辑 ---
+const packLocalData = async (): Promise<SyncDataPayload> => {
+  const [prompts, dictionaries, categories, platforms, models, tags] =
+    await Promise.all([
+      localStore.get<PromptItem[]>(STORAGE_KEYS.PROMPTS, []),
+      localStore.get<DictionaryItem[]>(STORAGE_KEYS.DICTIONARIES, []),
+      localStore.get<CategoryItem[]>(STORAGE_KEYS.CATEGORIES, []),
+      localStore.get<PlatformItem[]>(STORAGE_KEYS.PLATFORMS, []),
+      localStore.get<AIModelItem[]>(STORAGE_KEYS.MODELS, []),
+      localStore.get<TagItem[]>(STORAGE_KEYS.TAGS, []),
+    ]);
+
+  return {
+    prompts: prompts || [],
+    dictionaries: dictionaries || [],
+    categories: categories || [],
+    platforms: platforms || [],
+    models: models || [],
+    tags: tags || [],
+    timestamp: Date.now(),
+  };
+};
+
+const unpackToLocal = async (payload: SyncDataPayload) => {
+  await Promise.all([
+    localStore.set(STORAGE_KEYS.PROMPTS, payload.prompts || []),
+    localStore.set(STORAGE_KEYS.DICTIONARIES, payload.dictionaries || []),
+    localStore.set(STORAGE_KEYS.CATEGORIES, payload.categories || []),
+    localStore.set(STORAGE_KEYS.PLATFORMS, payload.platforms || []),
+    localStore.set(STORAGE_KEYS.MODELS, payload.models || []),
+    localStore.set(STORAGE_KEYS.TAGS, payload.tags || []),
+  ]);
+};
+
+// --- 同步核心逻辑 ---
 const handlePush = async () => {
   const isOk = await confirm(
-    "确定将本地所有数据推送到云端吗？这将覆盖云端原有数据。",
+    "确定将本地数据推送到云端吗？这将覆盖云端原有数据。",
     "上云确认",
     "info",
   );
   if (!isOk) return;
 
-  isPushing.value = true;
+  isSyncing.value = true;
   try {
-    // 确保把用户最新输入的 Gist ID 先存入设置
-    const settings =
-      (await syncStore.get<AppSettings>(STORAGE_KEYS.SETTINGS)) ||
-      DEFAULT_SETTINGS;
-    if (gistId.value !== settings.gistId) {
-      settings.gistId = gistId.value;
-      await syncStore.set(STORAGE_KEYS.SETTINGS, settings);
+    // 强制保存一次最新配置
+    await saveSettings();
+
+    // 1. 获取工厂实例
+    const provider = SyncFactory.createProvider(
+      formData.value.syncProvider,
+      formData.value,
+    );
+
+    // 2. 测试连通性
+    const isConnected = await provider.testConnection();
+    if (!isConnected)
+      throw new Error("连通性测试失败，请检查您的 Token 或网络配置");
+
+    // 3. 打包本地数据
+    const payload = await packLocalData();
+
+    // 4. 执行推送
+    const resultId = await provider.pushData(payload);
+
+    // 5. 如果是 Github 新建的 Gist，回填 ID
+    if (
+      formData.value.syncProvider === "github" &&
+      resultId &&
+      typeof resultId === "string"
+    ) {
+      if (formData.value.githubSync.gistId !== resultId) {
+        formData.value.githubSync.gistId = resultId;
+        await saveSettings();
+      }
     }
 
-    const newGistId = await githubSync.pushToCloud();
-
-    // 如果是新建的，回填 ID
-    if (newGistId && newGistId !== gistId.value) {
-      gistId.value = newGistId;
-    }
-
-    success("🎉 数据已成功备份至 Github Gist！");
+    success("🎉 数据已成功推送至云端！");
   } catch (err: any) {
-    error(err.message || "上传云端失败，请检查网络或 Token 权限");
+    error(err.message || "上传云端失败，请检查配置");
   } finally {
-    isPushing.value = false;
+    isSyncing.value = false;
   }
 };
 
-// --- 下拉到本地 (Pull) ---
 const handlePull = async () => {
-  if (!gistId.value) {
-    warning("请先输入要恢复的 Gist ID！");
-    return;
-  }
-
   const isOk = await confirm(
-    "确定从云端拉取数据吗？警告：这将会完全覆盖您当前的本地数据！此操作不可逆！",
+    "确定从云端拉取数据吗？警告：这将会完全覆盖您的本地数据！此操作不可逆！",
     "高危操作：覆盖本地",
     "danger",
-    "确认覆盖",
   );
   if (!isOk) return;
 
-  isPulling.value = true;
+  isSyncing.value = true;
   try {
-    // 先保存用户可能手填的旧 Gist ID
-    const settings =
-      (await syncStore.get<AppSettings>(STORAGE_KEYS.SETTINGS)) ||
-      DEFAULT_SETTINGS;
-    if (gistId.value !== settings.gistId) {
-      settings.gistId = gistId.value;
-      await syncStore.set(STORAGE_KEYS.SETTINGS, settings);
-    }
+    await saveSettings();
 
-    await githubSync.pullFromCloud();
-    success("☁️ 云端数据已成功拉取并覆盖本地！请刷新页面查看。");
+    // 1. 获取工厂实例
+    const provider = SyncFactory.createProvider(
+      formData.value.syncProvider,
+      formData.value,
+    );
 
-    // 提示用户刷新以让所有页面重新读取数据
-    setTimeout(() => {
-      window.location.reload();
-    }, 1500);
+    // 2. 执行拉取
+    const payload = await provider.pullData();
+
+    // 3. 覆盖本地
+    await unpackToLocal(payload);
+
+    success("☁️ 云端数据已成功拉取并覆盖本地！");
+    setTimeout(() => window.location.reload(), 1500);
   } catch (err: any) {
-    error(err.message || "拉取数据失败，请检查 Gist ID 是否正确");
+    error(err.message || "拉取数据失败，请检查配置");
   } finally {
-    isPulling.value = false;
+    isSyncing.value = false;
   }
 };
 
@@ -363,12 +572,6 @@ const handleClearData = async () => {
     await syncStore.clear();
     success("所有本地数据已成功清空");
     setTheme("system");
-
-    // 清空状态
-    githubToken.value = "";
-    gistId.value = "";
-    isValidated.value = false;
-
     setTimeout(() => window.location.reload(), 1000);
   }
 };
