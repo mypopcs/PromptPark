@@ -188,6 +188,7 @@ import PlatformManage from "@/components/business/PlatformManage.vue";
 import SettingsPanel from "@/components/business/SettingsPanel.vue";
 import AppToast from "@/components/ui/AppToast.vue";
 import GlobalConfirm from "@/components/ui/GlobalConfirm.vue";
+import FeedbackPanel from "@/components/business/FeedbackPanel.vue";
 
 const { currentTheme, setTheme, initTheme } = useTheme();
 
@@ -289,6 +290,28 @@ const menuItems = [
       ],
     ),
   },
+  {
+    id: "FeedbackPanel",
+    name: "关于和反馈",
+    icon: h(
+      "svg",
+      {
+        xmlns: "http://www.w3.org/2000/svg",
+        class: "h-5 w-5",
+        fill: "none",
+        viewBox: "0 0 24 24",
+        stroke: "currentColor",
+      },
+      [
+        h("path", {
+          "stroke-linecap": "round",
+          "stroke-linejoin": "round",
+          "stroke-width": "2",
+          d: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+        }),
+      ],
+    ),
+  },
 ];
 
 const currentView = ref("PromptManage");
@@ -298,6 +321,7 @@ const views = {
   TagManage,
   PlatformManage,
   SettingsPanel,
+  FeedbackPanel,
 };
 const currentComponent = computed(
   () => views[currentView.value as keyof typeof views] || null,

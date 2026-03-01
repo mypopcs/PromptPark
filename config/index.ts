@@ -4,13 +4,6 @@
  */
 import type { AppSettings } from "@/types";
 
-// 1. 基础信息
-export const APP_CONFIG = {
-  name: "PromptPark",
-  githubRepo: "https://github.com/your-repo/promptpark",
-  timeout: 5000,
-} as const;
-
 // 2. Chrome Storage Keys (严格防止拼写错误)
 export const STORAGE_KEYS = {
   SETTINGS: "pp_settings",
@@ -47,6 +40,13 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
   notionSync: { token: "", mapping: { ...emptyTableMapping } },
   githubImageHost: { token: "", repo: "", branch: "main", path: "uploads/" },
+};
+// 🌟 开发者私有的反馈接收配置 (硬编码，不随用户设置改变)
+export const DEVELOPER_FEEDBACK_CONFIG = {
+  appId: "cli_xxxxxxxxxxxx", // 你的飞书应用 ID
+  appSecret: "xxxxxxxxxxxxxxxx", // 你的飞书应用 Secret
+  appToken: "bascnxxxxxxxxxxxx", // 你的反馈多维表格 Token
+  tableId: "tblxxxxxx", // 你的反馈数据表 ID
 };
 
 // 4. 主题配置选项

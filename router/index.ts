@@ -37,6 +37,11 @@ const routes: RouteRecordRaw[] = [
     name: "Platforms",
     component: () => import("@/components/business/PlatformManage.vue"),
   },
+  {
+    path: "/feedback",
+    name: "Feedback",
+    component: () => import("@/components/business/FeedbackPanel.vue"),
+  },
 ];
 
 // 创建路由实例
