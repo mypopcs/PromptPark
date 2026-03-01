@@ -1,3 +1,23 @@
 {
-  "extends": "./.wxt/tsconfig.json"
+  // "extends": ".wxt/tsconfig.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true, // 强制开启严格模式
+    "noImplicitAny": true, // 禁止隐式 any
+    "strictNullChecks": true, // 严格的空值检查
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "baseUrl": ".", // 基础路径设为根目录
+    "paths": {
+      "@/*": ["./*"] // 配置 @ 指向根目录的任何文件夹
+    },
+    "types": ["vite/client", "chrome"]
+  },
+  "include": ["**/*.ts", "**/*.vue", ".wxt/types/**/*.d.ts"],
+  "exclude": ["node_modules", "dist", ".output"]
 }

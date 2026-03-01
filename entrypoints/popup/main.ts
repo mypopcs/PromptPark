@@ -1,5 +1,6 @@
-import { createApp } from 'vue';
-import './style.css';
-import App from './App.vue';
+import { createApp } from "vue";
+import App from "./App.vue";
+import "@/assets/tailwind.css"; // 引入全局样式（包含 DaisyUI）
 
-createApp(App).mount('#app');
+const app = createApp(App);
+app.mount("#app");
