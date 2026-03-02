@@ -33,7 +33,7 @@
         :loading="isLoading"
         :total="tableData.length"
       >
-        <template #cell-color="{ row }">
+        <template #cell-name="{ row }">
           <span
             class="badge border-none text-white font-medium shadow-sm"
             :style="{ backgroundColor: row.color }"
@@ -42,39 +42,39 @@
           </span>
         </template>
         <template #cell-actions="{ row }">
-          <button
-            class="btn btn-xs btn-ghost text-error"
-            @click="handleDelete(row)"
-          >
-            删除
-          </button>
+          <div class="flex gap-2">
+            <button
+              class="btn btn-xs btn-ghost text-primary"
+              @click="openEditModal(row)"
+            >
+              编辑
+            </button>
+            <button
+              class="btn btn-xs btn-ghost text-error"
+              @click="handleDelete(row)"
+            >
+              删除
+            </button>
+          </div>
         </template>
       </BaseTable>
     </div>
-
     <BaseModal
       v-model="isModalOpen"
-      title="新建标签"
-      confirmText="保存标签"
+      :title="modalMode === 'create' ? '新建标签' : '编辑标签'"
+      confirmText="提交"
       @confirm="saveData"
     >
-      <div class="form-control w-full">
-        <label class="label"
-          ><span class="label-text font-medium"
-            >标签名称 <span class="text-error">*</span></span
-          ></label
-        >
-        <input
-          v-model.trim="formData.name"
-          type="text"
-          placeholder="例如: Midjourney 咒语"
-          class="input input-bordered w-full"
-          @keydown.enter="saveData"
-        />
-        <p class="text-xs text-base-content/50 mt-2">
-          提示：系统将为您自动分配一个不重复的高级柔和色彩。
-        </p>
-      </div>
+      <BaseInput
+        v-model.trim="formData.name"
+        label="标签名称"
+        type="text"
+        placeholder="请输入标签名称"
+        :required="true"
+        :trim="true"
+        @keydown.enter="saveData"
+        helpText="标签可用于为提示词的自定义分组，例如：AI漫剧常用，公司项目等"
+      />
     </BaseModal>
   </div>
 </template>
@@ -82,8 +82,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import BaseTable, { type TableColumn } from "@/components/ui/BaseTable.vue";
-import BaseModal from "@/components/ui/BaseModal.vue"; // 引入通用弹窗
-import type { TagItem } from "@/types";
+import BaseModal from "@/components/ui/BaseModal.vue";
+import BaseInput from "@/components/ui/BaseInput.vue";
+import type { TagItem, PromptItem } from "@/types";
 import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
 import { useConfirm } from "@/composables/useConfirm";
@@ -96,24 +97,61 @@ const { success, warning } = useMessage();
 const tableData = ref<TagItem[]>([]);
 const isLoading = ref(false);
 const isModalOpen = ref(false);
+const modalMode = ref<"create" | "edit">("create");
+const editingId = ref<string>("");
 
 const formData = ref<TagItem>(createDefaultTag());
 
 const columns: TableColumn<TagItem>[] = [
   { key: "name", label: "标签名称", width: "40%" },
-  { key: "color", label: "效果预览", width: "30%" },
+  { key: "promptCount", label: "关联提示词数量", width: "30%" },
   { key: "actions", label: "操作", width: "30%" },
 ];
 
+const ensureArray = <T,>(
+  data: T[] | Record<string, T> | null | undefined,
+): T[] => {
+  if (!data) return [];
+  return Array.isArray(data) ? data : Object.values(data);
+};
+
 const loadData = async () => {
   isLoading.value = true;
-  tableData.value =
-    (await localStore.get<TagItem[]>(STORAGE_KEYS.TAGS, [])) || [];
+
+  const rawTags = await localStore.get<TagItem[]>(STORAGE_KEYS.TAGS, []);
+  const rawPrompts = await localStore.get<PromptItem[]>(
+    STORAGE_KEYS.PROMPTS,
+    [],
+  );
+
+  const allTags = ensureArray(rawTags);
+  const allPrompts = ensureArray(rawPrompts);
+
+  tableData.value = allTags.map((tag) => {
+    const count = allPrompts.filter((p) => {
+      const promptTags = ensureArray(p.tags);
+      return promptTags.includes(tag.id);
+    }).length;
+    return {
+      ...tag,
+      promptCount: count,
+    };
+  });
+
   isLoading.value = false;
 };
 
 const openModal = () => {
-  formData.value = createDefaultTag(); // ID 和 颜色 都在这里全自动生成好了！
+  modalMode.value = "create";
+  editingId.value = "";
+  formData.value = createDefaultTag();
+  isModalOpen.value = true;
+};
+
+const openEditModal = (row: TagItem) => {
+  modalMode.value = "edit";
+  editingId.value = row.id;
+  formData.value = { ...row };
   isModalOpen.value = true;
 };
 
@@ -122,9 +160,18 @@ const saveData = async () => {
     warning("请填写标签名称");
     return;
   }
-  const newList = [formData.value, ...tableData.value];
+
+  let newList: TagItem[];
+  if (modalMode.value === "edit" && editingId.value) {
+    newList = tableData.value.map((item) =>
+      item.id === editingId.value ? { ...formData.value } : item,
+    );
+  } else {
+    newList = [formData.value, ...tableData.value];
+  }
+
   await localStore.set(STORAGE_KEYS.TAGS, newList);
-  success("标签保存成功");
+  success(modalMode.value === "edit" ? "标签更新成功" : "标签保存成功");
   isModalOpen.value = false;
   await loadData();
 };

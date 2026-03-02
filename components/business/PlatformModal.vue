@@ -1,44 +1,26 @@
 <template>
   <BaseModal
     v-model="isVisible"
-    :title="mode === 'edit' ? '编辑平台与模型' : '新增平台与模型'"
-    confirmText="保存平台"
+    :title="mode === 'edit' ? '编辑AI平台与模型' : '新增AI平台与模型'"
+    confirmText="提交"
     @confirm="handleSave"
   >
     <div class="space-y-6">
-      <div class="form-control w-full">
-        <label class="label"
-          ><span class="label-text font-medium"
-            >平台名称 <span class="text-error">*</span></span
-          ></label
-        >
-        <input
-          v-model.trim="formData.name"
-          type="text"
-          placeholder="例如: ChatGPT"
-          class="input input-bordered w-full"
-          required
-        />
-      </div>
-
-      <div
-        class="form-control w-full bg-base-200/50 p-4 rounded-xl border border-base-200"
-      >
-        <label class="label pt-0"
-          ><span class="label-text font-medium text-primary"
-            >下属模型管理</span
-          ></label
-        >
-        <p class="text-xs text-base-content/50 mb-4">
-          输入模型名称后按回车快速创建，例如输入 "GPT-4o" 并回车。
-        </p>
-        <MultiSelectInput
-          v-model="selectedModelIds"
-          :options="currentPlatformModels"
-          placeholder="输入新模型名称并回车..."
-          @create="handleCreateModel"
-        />
-      </div>
+      <BaseInput
+        v-model="formData.name"
+        label="AI平台"
+        placeholder="例如: ChatGPT"
+        :required="true"
+        :trim="true"
+        type="text"
+      />
+      <MultiSelectInput
+        label="关联模型"
+        v-model="selectedModelIds"
+        :options="currentPlatformModels"
+        placeholder="输入新模型名称并回车..."
+        @create="handleCreateModel"
+      />
     </div>
   </BaseModal>
 </template>
@@ -46,6 +28,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import BaseModal from "@/components/ui/BaseModal.vue";
+import BaseInput from "@/components/ui/BaseInput.vue";
 import MultiSelectInput from "@/components/ui/MultiSelectInput.vue";
 import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
@@ -104,7 +87,7 @@ const handleCreateModel = (name: string) => {
 
 const handleSave = async () => {
   if (!formData.value.name) {
-    warning("请填写平台名称");
+    warning("请填写AI平台");
     return;
   }
 

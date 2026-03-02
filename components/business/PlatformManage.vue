@@ -2,13 +2,13 @@
   <div class="space-y-6 h-full flex flex-col animate-fade-in">
     <div class="flex items-center justify-between shrink-0">
       <div>
-        <h1 class="text-2xl font-bold text-base-content">平台与模型管理</h1>
+        <h1 class="text-2xl font-bold text-base-content">AI平台与模型管理</h1>
         <p class="text-sm text-base-content/70 mt-1">
-          管理 AI 平台及下属的具体模型版本，模型将与平台强绑定
+          管理提示词适用的 AI 平台及附属模型版本
         </p>
       </div>
       <button class="btn btn-primary shadow-sm" @click="openAddModal">
-        新建平台
+        新增AI平台与模型
       </button>
     </div>
 
@@ -68,7 +68,7 @@ const modalMode = ref<"create" | "edit">("create");
 const currentData = ref<PlatformItem | undefined>(undefined);
 
 const columns: TableColumn<PlatformItem>[] = [
-  { key: "name", label: "平台名称", sortable: true, width: "40%" },
+  { key: "name", label: "AI平台", sortable: true, width: "40%" },
   { key: "modelCount", label: "模型数", sortable: true, width: "25%" },
   { key: "promptCount", label: "提示词数", sortable: true, width: "20%" },
   { key: "actions", label: "操作", width: "15%" },

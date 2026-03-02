@@ -8,7 +8,7 @@
         </p>
       </div>
       <button class="btn btn-primary shadow-sm" @click="openAddModal">
-        新建词典
+        新增词典和分类
       </button>
     </div>
 
@@ -93,13 +93,13 @@ const modalMode = ref<"create" | "edit">("create");
 const currentData = ref<DictionaryItem | undefined>(undefined);
 
 const columns: TableColumn<DictionaryItem>[] = [
-  { key: "coverImage", label: "封面", width: "8%" },
-  { key: "name", label: "词典名称", sortable: true, width: "20%" },
-  { key: "description", label: "描述", width: "20%" },
-  { key: "categoryCount", label: "分类数", sortable: true, width: "10%" },
-  { key: "promptCount", label: "提示词数", sortable: true, width: "10%" },
-  { key: "price", label: "价格", sortable: true, width: "10%" },
-  { key: "isOfficialRecommended", label: "推荐", width: "10%" },
+  { key: "coverImage", label: "词典封面", width: "8%" },
+  { key: "name", label: "词典名", sortable: true, width: "20%" },
+  { key: "description", label: "词典描述", width: "20%" },
+  { key: "categoryCount", label: "关联分类数", sortable: true, width: "10%" },
+  { key: "promptCount", label: "关联提示词数", sortable: true, width: "10%" },
+  // { key: "price", label: "价格", sortable: true, width: "10%" },
+  // { key: "isOfficialRecommended", label: "推荐", width: "10%" },
   { key: "actions", label: "操作", width: "12%" },
 ];
 

@@ -36,7 +36,7 @@ const currentRouteName = computed(() => {
   const nameMap: Record<string, string> = {
     Prompts: "提示词管理",
     Dictionaries: "词典管理",
-    Settings: "系统设置",
+    Settings: "插件与同步设置",
   };
   return nameMap[route.name as string] || "PromptPark";
 });

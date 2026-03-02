@@ -1,7 +1,14 @@
 <template>
-  <div class="relative w-full" ref="containerRef">
+  <div class="w-full" ref="containerRef">
+    <label class="label" v-if="label">
+      <span class="label-text font-medium text-sm mb-1">
+        {{ label }}
+        <span v-if="required" class="text-error">*</span>
+      </span>
+    </label>
     <div
-      class="input input-bordered flex flex-wrap items-center gap-1 h-auto min-h-[3rem] py-1.5 cursor-text focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-base-content/20"
+      ref="inputWrapperRef"
+      class="input input-bordered flex flex-wrap w-full items-center gap-1 py-1.5 cursor-text focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-base-content/20"
       @click="focusInput"
     >
       <span
@@ -36,88 +43,103 @@
         type="text"
         :placeholder="selectedItems.length === 0 ? placeholder : ''"
         class="flex-1 min-w-[120px] bg-transparent outline-none border-none text-sm p-1 text-base-content placeholder:text-base-content/40"
-        @focus="isDropdownOpen = true"
+        @focus="openDropdown"
         @keydown.enter.prevent="handleEnter"
         @keydown.backspace="handleBackspace"
       />
     </div>
 
-    <ul
-      v-show="
-        isDropdownOpen &&
-        (filteredOptions.length > 0 ||
-          (inputValue && allowCreate && !exactMatch))
-      "
-      class="menu dropdown-content bg-base-100 rounded-box z-[100] w-full shadow-lg absolute top-full mt-2 max-h-60 overflow-y-auto border border-base-200"
-    >
-      <li v-for="opt in filteredOptions" :key="opt.id">
-        <a @click.stop="selectOption(opt.id)">
-          {{ opt.name }}
-        </a>
-      </li>
+    <Teleport to="body">
+      <ul
+        v-show="isDropdownOpen && showDropdownContent"
+        ref="dropdownRef"
+        class="menu bg-base-100 rounded-box shadow-xl fixed overflow-y-auto border border-base-200"
+        :style="dropdownStyle"
+      >
+        <li v-for="opt in filteredOptions" :key="opt.id">
+          <a @click.stop="selectOption(opt.id)">
+            {{ opt.name }}
+          </a>
+        </li>
 
-      <li v-if="inputValue && allowCreate && !exactMatch">
-        <a
-          @click.stop="handleEnter"
-          class="text-primary font-medium flex items-center gap-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="2"
-            stroke="currentColor"
-            class="w-4 h-4"
+        <li v-if="inputValue && allowCreate && !exactMatch">
+          <span
+            @click.stop="handleEnter"
+            class="text-gray-500 text-sm flex items-center gap-2"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          按回车创建 "{{ inputValue }}"
-        </a>
-      </li>
-    </ul>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-4 h-4"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+            按回车创建 "{{ inputValue }}"
+          </span>
+        </li>
+      </ul>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 
-// 定义选项的基础接口 (只需 id 和 name 即可满足绝大多数情况)
 export interface BaseOption {
   id: string;
   name: string;
-  [key: string]: any; // 兼容携带其他属性的对象
+  [key: string]: any;
 }
 
 const props = withDefaults(
   defineProps<{
-    modelValue: string[]; // 绑定的已选 ID 数组
-    options: BaseOption[]; // 所有可选的数据源
+    modelValue: string[];
+    options: BaseOption[];
     placeholder?: string;
-    allowCreate?: boolean; // 是否允许输入不存在的内容进行创建
+    allowCreate?: boolean;
+    label?: string;
+    required?: boolean;
   }>(),
   {
     placeholder: "请选择或输入...",
     allowCreate: true,
+    required: false,
   },
 );
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: string[]): void;
-  // 当用户回车创建新项时触发，向外抛出新名称，让父组件去数据库落盘并返回新选项
   (e: "create", name: string): void;
 }>();
 
 const containerRef = ref<HTMLElement | null>(null);
+const inputWrapperRef = ref<HTMLElement | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
+const dropdownRef = ref<HTMLElement | null>(null);
 
 const inputValue = ref("");
 const isDropdownOpen = ref(false);
+const dropdownStyle = ref({
+  top: "0px",
+  left: "0px",
+  width: "0px",
+  zIndex: 99999,
+});
 
-// 1. 统一获取安全的数组格式 (防御性编程)
+const showDropdownContent = computed(() => {
+  return (
+    filteredOptions.value.length > 0 ||
+    (inputValue.value && props.allowCreate && !exactMatch.value)
+  );
+});
+
 const safeOptions = computed<BaseOption[]>(() => {
   if (Array.isArray(props.options)) return props.options;
   if (props.options && typeof props.options === "object") {
@@ -126,7 +148,6 @@ const safeOptions = computed<BaseOption[]>(() => {
   return [];
 });
 
-// 将选中的 ID 映射回完整的选项对象，用于渲染蓝色小 Badge
 const selectedItems = computed(() => {
   if (!Array.isArray(props.modelValue)) return [];
 
@@ -135,32 +156,44 @@ const selectedItems = computed(() => {
     .filter((item): item is BaseOption => Boolean(item));
 });
 
-// 3. 修复过滤逻辑 (报错位置 2: 确认你的搜索变量名，这里假设是 searchText)
-// 如果你的搜索变量叫别的，请把下面的 'searchText' 改掉
-const searchText = ref(""); // 假设这是你的搜索绑定
-
 const filteredOptions = computed(() => {
   const list = safeOptions.value;
-  if (!searchText.value) return list;
+  if (!inputValue.value) return list;
 
-  const query = searchText.value.toLowerCase();
+  const query = inputValue.value.toLowerCase();
   return list.filter((opt: BaseOption) =>
     opt.name.toLowerCase().includes(query),
   );
 });
 
-// 判断当前输入的内容是否已经完全等于某个已有选项（忽略大小写）
 const exactMatch = computed(() => {
   if (!inputValue.value) return false;
   const kw = inputValue.value.toLowerCase();
   return props.options.some((opt) => opt.name.toLowerCase() === kw);
 });
 
-// --- 核心交互逻辑 ---
+const updateDropdownPosition = () => {
+  if (!inputWrapperRef.value) return;
+
+  const rect = inputWrapperRef.value.getBoundingClientRect();
+  dropdownStyle.value = {
+    top: `${rect.bottom + 8}px`,
+    left: `${rect.left}px`,
+    width: `${rect.width}px`,
+    zIndex: 99999,
+  };
+};
+
+const openDropdown = () => {
+  isDropdownOpen.value = true;
+  nextTick(() => {
+    updateDropdownPosition();
+  });
+};
 
 const focusInput = () => {
   inputRef.value?.focus();
-  isDropdownOpen.value = true;
+  openDropdown();
 };
 
 const selectOption = (id: string) => {
@@ -168,7 +201,7 @@ const selectOption = (id: string) => {
     emit("update:modelValue", [...props.modelValue, id]);
   }
   inputValue.value = "";
-  inputRef.value?.focus(); // 选中后保持聚焦，方便继续选
+  inputRef.value?.focus();
 };
 
 const removeOption = (id: string) => {
@@ -181,7 +214,6 @@ const removeOption = (id: string) => {
 const handleEnter = () => {
   if (!inputValue.value) return;
 
-  // 1. 如果输入的内容完美匹配了已有的某个选项，直接选中它
   const matchedOpt = props.options.find(
     (opt) => opt.name.toLowerCase() === inputValue.value.toLowerCase(),
   );
@@ -190,15 +222,13 @@ const handleEnter = () => {
     return;
   }
 
-  // 2. 如果不匹配任何现有选项，且允许创建，则抛出创建事件
   if (props.allowCreate) {
     emit("create", inputValue.value);
-    inputValue.value = ""; // 清空输入框，等待父组件将新数据塞入 options 并选中
+    inputValue.value = "";
   }
 };
 
 const handleBackspace = () => {
-  // 如果输入框为空，且按了退格键，则删除最后一个选中的项
   if (inputValue.value === "" && props.modelValue.length > 0) {
     const newValues = [...props.modelValue];
     newValues.pop();
@@ -206,21 +236,41 @@ const handleBackspace = () => {
   }
 };
 
-// --- 点击外部关闭下拉菜单 ---
 const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as Node;
   if (
     containerRef.value &&
-    !containerRef.value.contains(event.target as Node)
+    !containerRef.value.contains(target) &&
+    dropdownRef.value &&
+    !dropdownRef.value.contains(target)
   ) {
     isDropdownOpen.value = false;
   }
 };
 
+const handleScroll = () => {
+  if (isDropdownOpen.value) {
+    updateDropdownPosition();
+  }
+};
+
+watch(isDropdownOpen, (open) => {
+  if (open) {
+    nextTick(() => {
+      updateDropdownPosition();
+    });
+  }
+});
+
 onMounted(() => {
   document.addEventListener("mousedown", handleClickOutside);
+  window.addEventListener("scroll", handleScroll, true);
+  window.addEventListener("resize", updateDropdownPosition);
 });
 
 onUnmounted(() => {
   document.removeEventListener("mousedown", handleClickOutside);
+  window.removeEventListener("scroll", handleScroll, true);
+  window.removeEventListener("resize", updateDropdownPosition);
 });
 </script>

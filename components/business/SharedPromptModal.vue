@@ -6,160 +6,88 @@
     widthClass="max-w-4xl"
     @confirm="handleSave"
   >
-    <div class="space-y-8">
-      <div class="bg-base-100 p-5 rounded-xl border border-base-200 shadow-sm">
-        <h4
-          class="text-sm font-bold text-base-content/70 mb-4 uppercase tracking-wider"
-        >
-          分类归属
-        </h4>
-        <div class="grid grid-cols-2 gap-6">
-          <div class="form-control w-full">
-            <label class="label"
-              ><span class="label-text font-medium"
-                >所属词典 <span class="text-error">*</span></span
-              ></label
-            >
-            <select
-              v-model="formData.dictionaryId"
-              class="select select-bordered w-full bg-base-100"
-              @change="handleDictChange"
-            >
-              <option value="" disabled>请选择词典</option>
-              <option
-                v-for="dict in dictionaries"
-                :key="dict.id"
-                :value="dict.id"
-              >
-                {{ dict.name }}
-              </option>
-            </select>
-          </div>
-          <div class="form-control w-full">
-            <label class="label"
-              ><span class="label-text font-medium"
-                >所属分类 <span class="text-error">*</span></span
-              ></label
-            >
-            <select
-              v-model="formData.categoryId"
-              class="select select-bordered w-full bg-base-100"
-              :disabled="!formData.dictionaryId"
-            >
-              <option value="" disabled>
-                {{ formData.dictionaryId ? "请选择分类" : "请先选择词典" }}
-              </option>
-              <option
-                v-for="cat in availableCategories"
-                :key="cat.id"
-                :value="cat.id"
-              >
-                {{ cat.name }}
-              </option>
-            </select>
-          </div>
+    <div class="grid grid-cols-2 gap-2">
+      <div class="space-y-4">
+        <BaseInput
+          v-model.trim="formData.prompt"
+          label="提示词"
+          :required="true"
+          type="textarea"
+          placeholder="输入核心提示词......"
+        />
+        <BaseInput
+          v-model.trim="formData.translation"
+          label="中文释义与结构说明"
+          :required="true"
+          type="textarea"
+          placeholder="输入中文释义及用法提示..."
+        />
+        <MultiSelectInput
+          label="关联标签"
+          v-model="formData.tags"
+          :options="tagsList"
+          :allowCreate="true"
+          :required="true"
+          placeholder="输入新标签名称回车..."
+          @create="handleCreateTag"
+        />
+        <div class="grid grid-cols-2 gap-2">
+          <BaseSelect
+            v-model="formData.dictionaryId"
+            label="所属词典"
+            :required="true"
+            :options="
+              dictionaries.map((dict) => ({
+                value: dict.id,
+                label: dict.name,
+              }))
+            "
+            placeholder="请选择词典"
+            @change="handleDictChange"
+          />
+          <BaseSelect
+            v-model="formData.categoryId"
+            label="所属分类"
+            :required="true"
+            :options="
+              availableCategories.map((cat) => ({
+                value: cat.id,
+                label: cat.name,
+              }))
+            "
+            :placeholder="formData.dictionaryId ? '请选择分类' : '请先选择词典'"
+            :disabled="!formData.dictionaryId"
+          />
         </div>
       </div>
+      <div class="space-y-4">
+        <BaseInput
+          v-model.trim="formData.notes"
+          label="备注"
+          :required="false"
+          type="textarea"
+          placeholder="输入备注信息..."
+        />
+        <div class="grid grid-cols-2 gap-2">
+          <MultiSelectInput
+            v-model="formData.platforms"
+            label="适用平台"
+            :required="false"
+            :options="platformsList"
+            placeholder="请先选择平台..."
+            @update:modelValue="handlePlatformChange"
+          />
+          <MultiSelectInput
+            v-model="formData.models"
+            label="适用模型"
+            :required="false"
+            :options="availableModels"
+            :disabled="formData.platforms.length === 0"
+            placeholder="请先选择模型..."
+          />
+        </div>
 
-      <div class="grid grid-cols-2 gap-6">
-        <div class="form-control w-full">
-          <label class="label"
-            ><span class="label-text font-medium"
-              >核心提示词 (Prompt) <span class="text-error">*</span></span
-            ></label
-          >
-          <textarea
-            v-model.trim="formData.prompt"
-            class="textarea textarea-bordered h-36 font-mono text-sm leading-relaxed"
-            placeholder="输入核心提示词..."
-            required
-          ></textarea>
-        </div>
-        <div class="form-control w-full flex flex-col">
-          <label class="label"
-            ><span class="label-text font-medium"
-              >中文释义与结构说明 <span class="text-error">*</span></span
-            ></label
-          >
-          <textarea
-            v-model.trim="formData.translation"
-            class="textarea textarea-bordered flex-1 leading-relaxed"
-            placeholder="输入中文释义及用法提示..."
-            required
-          ></textarea>
-        </div>
-      </div>
-
-      <div class="bg-base-100 p-5 rounded-xl border border-base-200 shadow-sm">
-        <h4
-          class="text-sm font-bold text-base-content/70 mb-4 uppercase tracking-wider"
-        >
-          AI 引擎兼容性
-        </h4>
-        <div class="grid grid-cols-2 gap-6">
-          <div class="form-control w-full">
-            <label class="label"
-              ><span class="label-text font-medium"
-                >适用平台 (可多选)</span
-              ></label
-            >
-            <MultiSelectInput
-              v-model="formData.platforms"
-              :options="platformsList"
-              placeholder="选择兼容的平台..."
-              @update:modelValue="handlePlatformChange"
-            />
-          </div>
-          <div class="form-control w-full">
-            <label class="label"
-              ><span class="label-text font-medium"
-                >最佳实践模型 (基于平台过滤)</span
-              ></label
-            >
-            <MultiSelectInput
-              v-model="formData.models"
-              :options="availableModels"
-              :disabled="formData.platforms.length === 0"
-              placeholder="请先选择平台..."
-            />
-          </div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-3 gap-6">
-        <div class="col-span-2 space-y-4">
-          <div class="form-control w-full">
-            <label class="label"
-              ><span class="label-text font-medium"
-                >关联标签 <span class="text-error">*</span></span
-              ></label
-            >
-            <MultiSelectInput
-              v-model="formData.tags"
-              :options="tagsList"
-              :allowCreate="true"
-              placeholder="输入新标签名称回车..."
-              @create="handleCreateTag"
-            />
-          </div>
-          <div class="form-control w-full">
-            <label class="label"
-              ><span class="label-text font-medium">内部备注</span></label
-            >
-            <input
-              v-model.trim="formData.notes"
-              type="text"
-              class="input input-bordered w-full"
-              placeholder="备注信息..."
-            />
-          </div>
-        </div>
-        <div class="form-control w-full">
-          <label class="label"
-            ><span class="label-text font-medium">可视化封面</span></label
-          >
-          <ImageUpload v-model="formData.thumbnail" />
-        </div>
+        <ImageUpload v-model="formData.thumbnail" label="缩略图" />
       </div>
     </div>
   </BaseModal>
@@ -168,6 +96,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import BaseModal from "@/components/ui/BaseModal.vue";
+import BaseSelect from "@/components/ui/BaseSelect.vue";
+import BaseInput from "@/components/ui/BaseInput.vue";
 import MultiSelectInput from "@/components/ui/MultiSelectInput.vue";
 import ImageUpload from "@/components/ui/ImageUpload.vue";
 import { localStore } from "@/utils/storage";
@@ -204,7 +134,7 @@ const modalTitle = computed(() => {
 });
 
 const confirmButtonText = computed(() =>
-  props.mode === "collect" ? "一键收藏" : "保存并生效",
+  props.mode === "collect" ? "采集" : "提交",
 );
 
 // 数据列表

@@ -39,7 +39,7 @@
 
     <li>
       <router-link to="/settings" active-class="active"
-        >⚙️ 系统设置</router-link
+        >⚙️ 插件与同步设置</router-link
       >
     </li>
     <li>

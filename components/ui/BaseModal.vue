@@ -10,11 +10,10 @@
         class="px-6 py-4 border-b border-base-200 bg-base-100/80 backdrop-blur-md flex justify-between items-center sticky top-0 z-20"
       >
         <h3 class="font-bold text-lg text-base-content flex items-center gap-2">
-          <span class="w-1.5 h-5 bg-primary rounded-full"></span>
           <slot name="title">{{ title }}</slot>
         </h3>
         <button
-          class="btn btn-sm btn-circle btn-ghost text-base-content/50"
+          class="btn btn-sm btn-ghost text-base-content/50"
           @click="close"
         >
           ✕

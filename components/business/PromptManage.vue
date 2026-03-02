@@ -77,6 +77,28 @@
             >
               {{ getPlatformName(pid) }}
             </span>
+            <span
+              v-if="!row.platforms || row.platforms.length === 0"
+              class="text-[10px] opacity-20"
+              >-</span
+            >
+          </div>
+        </template>
+
+        <template #cell-models="{ row }">
+          <div class="flex flex-wrap gap-1">
+            <span
+              v-for="mid in row.models"
+              :key="mid"
+              class="text-[10px] bg-base-200 px-1.5 py-0.5 rounded text-base-content/70"
+            >
+              {{ getModelName(mid) }}
+            </span>
+            <span
+              v-if="!row.models || row.models.length === 0"
+              class="text-[10px] opacity-20"
+              >-</span
+            >
           </div>
         </template>
 
@@ -122,6 +144,7 @@ import type {
   CategoryItem,
   PlatformItem,
   TagItem,
+  AIModelItem,
 } from "@/types";
 
 const { confirm } = useConfirm();
@@ -131,6 +154,7 @@ const prompts = ref<PromptItem[]>([]);
 const dictionaries = ref<DictionaryItem[]>([]);
 const categories = ref<CategoryItem[]>([]);
 const platformsList = ref<PlatformItem[]>([]);
+const modelsList = ref<AIModelItem[]>([]);
 const tagsList = ref<TagItem[]>([]);
 const isLoading = ref(false);
 
@@ -139,28 +163,32 @@ const modalMode = ref<"create" | "edit">("create");
 const currentData = ref<PromptItem | undefined>(undefined);
 
 const columns: TableColumn<PromptItem>[] = [
-  { key: "thumbnail", label: "封面", width: "8%" },
-  { key: "prompt", label: "提示词 / 翻译", width: "32%" },
-  { key: "dictionaryId", label: "所属词典/分类", width: "18%" },
-  { key: "tags", label: "标签", width: "18%" },
-  { key: "platforms", label: "适用平台", width: "14%" },
-  { key: "actions", label: "操作", width: "10%" },
+  { key: "thumbnail", label: "封面", width: "5%" },
+  { key: "prompt", label: "提示词", width: "18%" },
+  { key: "translation", label: "中文翻译", width: "15%" },
+  { key: "tags", label: "标签", width: "15%" },
+  { key: "dictionaryId", label: "所属词典/分类", width: "12%" },
+  { key: "platforms", label: "适用平台", width: "10%" },
+  { key: "models", label: "适用模型", width: "10%" },
+  { key: "actions", label: "操作", width: "8%" },
 ];
 
 const loadAllData = async () => {
   isLoading.value = true;
   try {
-    const [p, d, c, pt, t] = await Promise.all([
+    const [p, d, c, pt, m, t] = await Promise.all([
       localStore.get(STORAGE_KEYS.PROMPTS, []),
       localStore.get(STORAGE_KEYS.DICTIONARIES, []),
       localStore.get(STORAGE_KEYS.CATEGORIES, []),
       localStore.get(STORAGE_KEYS.PLATFORMS, []),
+      localStore.get(STORAGE_KEYS.MODELS, []),
       localStore.get(STORAGE_KEYS.TAGS, []),
     ]);
     prompts.value = Array.isArray(p) ? p : Object.values(p || {});
     dictionaries.value = Array.isArray(d) ? d : Object.values(d || {});
     categories.value = Array.isArray(c) ? c : Object.values(c || {});
     platformsList.value = Array.isArray(pt) ? pt : Object.values(pt || {});
+    modelsList.value = Array.isArray(m) ? m : Object.values(m || {});
     tagsList.value = Array.isArray(t) ? t : Object.values(t || {});
   } finally {
     isLoading.value = false;
@@ -182,6 +210,8 @@ const getTagColor = (id: string) =>
 const getPlatformName = (id: string) =>
   platformsList.value.find((p) => p.id.toString() === id?.toString())?.name ||
   "-";
+const getModelName = (id: string) =>
+  modelsList.value.find((m) => m.id.toString() === id?.toString())?.name || "-";
 
 const openAddModal = () => {
   if (dictionaries.value.length === 0) {

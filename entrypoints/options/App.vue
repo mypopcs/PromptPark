@@ -62,7 +62,7 @@
               ? 'bg-primary/10 text-primary font-medium'
               : 'text-base-content/70 hover:bg-base-200'
           "
-          :title="isCollapsed ? '系统设置' : ''"
+          :title="isCollapsed ? '插件与同步设置' : ''"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -87,7 +87,7 @@
           <span
             class="ml-3 text-sm whitespace-nowrap transition-opacity duration-300"
             :class="isCollapsed ? 'opacity-0 hidden' : 'opacity-100'"
-            >系统设置</span
+            >插件与同步设置</span
           >
         </a>
 
@@ -270,7 +270,7 @@ const menuItems = [
   },
   {
     id: "PlatformManage",
-    name: "平台与模型",
+    name: "AI平台与模型",
     icon: h(
       "svg",
       {
