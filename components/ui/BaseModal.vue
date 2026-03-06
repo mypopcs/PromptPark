@@ -12,12 +12,15 @@
         <h3 class="font-bold text-lg text-base-content flex items-center gap-2">
           <slot name="title">{{ title }}</slot>
         </h3>
-        <button
-          class="btn btn-sm btn-ghost text-base-content/50"
+        <BaseButton
+          variant="default"
+          size="sm"
+          type="ghost"
+          shape="square"
           @click="close"
         >
-          ✕
-        </button>
+          <i class="ri-close-line text-lg"></i>
+        </BaseButton>
       </div>
 
       <div class="flex-1 overflow-y-auto p-6 bg-base-200/20">
@@ -28,36 +31,31 @@
         class="px-6 py-4 border-t border-base-200 bg-base-100 flex justify-end gap-3 sticky bottom-0 z-20"
       >
         <slot name="footer">
-          <button type="button" class="btn btn-ghost" @click="close">
-            {{ cancelText }}
-          </button>
-          <button
-            type="button"
-            class="btn btn-primary px-8 shadow-lg shadow-primary/30"
+          <BaseButton variant="default" size="md" type="ghost" @click="close">{{
+            cancelText
+          }}</BaseButton>
+          <BaseButton
+            variant="primary"
+            size="md"
             :disabled="loading"
             @click="confirm"
+            >{{ confirmText }}</BaseButton
           >
-            <span
-              v-if="loading"
-              class="loading loading-spinner loading-xs"
-            ></span>
-            <slot name="confirmIcon"></slot>
-            {{ confirmText }}
-          </button>
         </slot>
       </div>
     </div>
-    <form
+    <!-- <form
       method="dialog"
       class="modal-backdrop bg-neutral/40 backdrop-blur-sm"
       @click.prevent="close"
     >
       <button>关闭</button>
-    </form>
+    </form> -->
   </dialog>
 </template>
 
 <script setup lang="ts">
+import BaseButton from "@/components/ui/BaseButton.vue";
 const props = withDefaults(
   defineProps<{
     modelValue: boolean; // 控制弹窗显示

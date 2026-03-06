@@ -10,7 +10,7 @@
             <span class="font-bold">版本 1.0.0</span>
           </p>
         </section>
-        <section class="pb-4">
+        <!-- <section class="pb-4">
           <h2 class="text-lg font-black mb-3">主要功能</h2>
           <ul
             class="list-disc list-inside space-y-1 text-mx text-gray-700 ml-2"
@@ -22,7 +22,7 @@
             <li><b>飞书同步：</b>支持配置私有飞书表格，多设备共享。</li>
             <li><b>GitHub图床：</b>图片保存后自动上传，省去购买费用。</li>
           </ul>
-        </section>
+        </section> -->
         <section class="pb-4">
           <h2 class="text-lg font-black mb-3">支持与交流</h2>
           <p class="text-sm space-y-2 opacity-80 mb-4">
@@ -91,19 +91,7 @@
         <div
           class="alert alert-info bg-info/10 border-info/20 shadow-sm rounded-2xl"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            class="stroke-info shrink-0 w-6 h-6"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            ></path>
-          </svg>
+          <i class="ri-information-line text-info text-2xl"></i>
           <div class="text-xs">
             <h3 class="font-bold">飞书配置帮助</h3>
             <p>
@@ -120,24 +108,14 @@
             <section class="space-y-6 mb-8">
               <h2 class="text-lg font-black mb-3">意见反馈</h2>
               <div class="form-control">
-                <label class="label"
-                  ><span class="label-text font-bold">反馈类型</span></label
-                >
-                <div class="flex gap-4">
-                  <label
-                    v-for="t in ['Bug 反馈', '功能建议', '其他']"
-                    :key="t"
-                    class="label cursor-pointer gap-2"
-                  >
-                    <input
-                      type="radio"
-                      class="radio radio-primary radio-sm"
-                      v-model="form.type"
-                      :value="t"
-                    />
-                    <span class="label-text">{{ t }}</span>
-                  </label>
-                </div>
+                <BaseInput
+                  type="radio"
+                  label="反馈类型"
+                  size="sm"
+                  v-model="form.type"
+                  :radio-options="feedbackTypeOptions"
+                  radio-name="feedback-type"
+                />
               </div>
               <BaseInput
                 v-model.trim="form.content"
@@ -152,34 +130,28 @@
                 placeholder="邮箱或微信号"
               />
               <div class="card-actions mt-4">
-                <button
-                  class="btn btn-primary"
+                <BaseButton
+                  variant="primary"
+                  size="md"
                   :disabled="isSubmitting || !form.content"
                   @click="submitFeedback"
                 >
-                  <span
-                    v-if="isSubmitting"
-                    class="loading loading-spinner"
-                  ></span>
-                  {{ isSubmitting ? "正在安全提交至飞书..." : "立即提交反馈" }}
-                </button>
+                  {{ isSubmitting ? "正在提交至飞书..." : "立即提交反馈" }}
+                </BaseButton>
               </div>
             </section>
             <section class="mb-8">
               <h2 class="text-lg font-black mb-3">联系我们</h2>
               <div class="text-sm space-y-2 opacity-80">
                 <p>
-                  官网：<a
-                    href="https://www.siliconrise.ai"
-                    target="_blank"
-                    class="link link-primary"
-                    >siliconrise.ai</a
+                  官网：<a href="#" target="_blank" class="link link-primary"
+                    >待更新</a
                   >
                 </p>
-                <p>邮箱：contact@siliconrise.ai</p>
+                <p>邮箱：kimpub@163.com</p>
               </div>
             </section>
-            <section class="mb-8">
+            <!-- <section class="mb-8">
               <h2 class="text-lg font-black mb-3">您对插件的整体评分</h2>
               <div class="rating rating-lg gap-2">
                 <input
@@ -191,7 +163,7 @@
                   :value="i"
                 />
               </div>
-            </section>
+            </section> -->
           </div>
         </div>
       </div>
@@ -205,9 +177,16 @@ import { useMessage } from "@/composables/useMessage";
 import { FeishuSyncService } from "@/utils/sync/FeishuSyncService"; //
 import { DEVELOPER_FEEDBACK_CONFIG } from "@/config"; //
 import BaseInput from "../ui/BaseInput.vue";
+import BaseButton from "../ui/BaseButton.vue";
 
 const { success, error } = useMessage();
 const isSubmitting = ref(false);
+
+const feedbackTypeOptions = [
+  { label: "Bug 反馈", value: "Bug 反馈" },
+  { label: "功能建议", value: "功能建议" },
+  { label: "其他", value: "其他" },
+];
 
 const form = ref({
   rating: 5,

@@ -6,10 +6,10 @@
         :key="msg.id"
         class="alert shadow-lg pointer-events-auto"
         :class="{
-          'alert-info': msg.type === 'info',
-          'alert-success': msg.type === 'success',
-          'alert-warning': msg.type === 'warning',
-          'alert-error': msg.type === 'error',
+          'alert-info': msg.variant === 'info',
+          'alert-success': msg.variant === 'success',
+          'alert-warning': msg.variant === 'warning',
+          'alert-error': msg.variant === 'error',
         }"
       >
         <span class="text-sm font-medium">{{ msg.content }}</span>

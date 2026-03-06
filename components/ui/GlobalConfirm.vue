@@ -8,9 +8,9 @@
     <template #title>
       <span
         :class="{
-          'text-error': state.type === 'danger',
-          'text-warning': state.type === 'warning',
-          'text-info': state.type === 'info',
+          'text-error': state.variant === 'danger',
+          'text-warning': state.variant === 'warning',
+          'text-info': state.variant === 'info',
         }"
       >
         {{ state.title }}
@@ -22,20 +22,17 @@
     </div>
 
     <template #footer>
-      <button class="btn btn-ghost" @click="handleCancel">
-        {{ state.cancelText }}
-      </button>
-      <button
-        class="btn px-6 shadow-sm text-white"
-        :class="
-          state.type === 'danger'
-            ? 'btn-error shadow-error/30'
-            : 'btn-primary shadow-primary/30'
-        "
-        @click="handleConfirm"
+      <BaseButton
+        variant="default"
+        size="md"
+        type="ghost"
+        @click="handleCancel"
       >
+        {{ state.cancelText }}
+      </BaseButton>
+      <BaseButton variant="error" size="md" @click="handleConfirm">
         {{ state.confirmText }}
-      </button>
+      </BaseButton>
     </template>
   </BaseModal>
 </template>
@@ -43,6 +40,7 @@
 <script setup lang="ts">
 import BaseModal from "./BaseModal.vue";
 import { useConfirm } from "@/composables/useConfirm";
+import BaseButton from "./BaseButton.vue";
 
 const { state } = useConfirm();
 

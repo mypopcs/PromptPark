@@ -7,9 +7,10 @@
           管理提示词适用的 AI 平台及附属模型版本
         </p>
       </div>
-      <button class="btn btn-primary shadow-sm" @click="openAddModal">
+      <BaseButton variant="primary" size="md" @click="openAddModal">
+        <i class="ri-add-line text-lg"></i>
         新增AI平台与模型
-      </button>
+      </BaseButton>
     </div>
 
     <div class="flex-1 overflow-hidden">
@@ -18,24 +19,10 @@
         :data="platforms"
         :loading="isLoading"
         :total="platforms.length"
-      >
-        <template #cell-actions="{ row }">
-          <div class="flex gap-2">
-            <button
-              class="btn btn-xs btn-ghost text-primary"
-              @click="openEditModal(row)"
-            >
-              编辑
-            </button>
-            <button
-              class="btn btn-xs btn-ghost text-error"
-              @click="handleDelete(row)"
-            >
-              删除
-            </button>
-          </div>
-        </template>
-      </BaseTable>
+        showActions
+        @edit="openEditModal"
+        @delete="handleDelete"
+      />
     </div>
 
     <PlatformModal
@@ -50,6 +37,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import BaseTable, { type TableColumn } from "@/components/ui/BaseTable.vue";
+import BaseButton from "../ui/BaseButton.vue";
 import PlatformModal from "@/components/business/PlatformModal.vue";
 import type { PlatformItem, AIModelItem } from "@/types";
 import { localStore } from "@/utils/storage";

@@ -7,9 +7,10 @@
           在这里统一管理您的核心 Prompt，精准绑定词典与平台
         </p>
       </div>
-      <button class="btn btn-primary shadow-sm" @click="openAddModal">
+      <BaseButton variant="primary" size="md" @click="openAddModal">
+        <i class="ri-add-line text-lg"></i>
         新建提示词
-      </button>
+      </BaseButton>
     </div>
 
     <div class="flex-1 overflow-hidden">
@@ -18,6 +19,9 @@
         :data="prompts"
         :loading="isLoading"
         :total="prompts.length"
+        showActions
+        @edit="openEditModal"
+        @delete="handleDelete"
       >
         <template #cell-thumbnail="{ row }">
           <div class="avatar" v-if="row.thumbnail">
@@ -52,14 +56,13 @@
 
         <template #cell-tags="{ row }">
           <div class="flex flex-wrap gap-1">
-            <span
+            <BaseTag
               v-for="tagId in row.tags"
               :key="tagId"
-              class="badge badge-sm border-none text-white font-medium"
-              :style="{ backgroundColor: getTagColor(tagId) }"
-            >
-              {{ getTagName(tagId) }}
-            </span>
+              :label="getTagName(tagId)"
+              :color="getTagColor(tagId)"
+              size="small"
+            />
             <span
               v-if="!row.tags || row.tags.length === 0"
               class="text-[10px] opacity-20"
@@ -101,23 +104,6 @@
             >
           </div>
         </template>
-
-        <template #cell-actions="{ row }">
-          <div class="flex gap-2">
-            <button
-              class="btn btn-xs btn-ghost text-primary"
-              @click="openEditModal(row)"
-            >
-              编辑
-            </button>
-            <button
-              class="btn btn-xs btn-ghost text-error"
-              @click="handleDelete(row)"
-            >
-              删除
-            </button>
-          </div>
-        </template>
       </BaseTable>
     </div>
 
@@ -138,6 +124,8 @@ import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
 import { useConfirm } from "@/composables/useConfirm";
 import { useMessage } from "@/composables/useMessage";
+import BaseButton from "@/components/ui/BaseButton.vue";
+import BaseTag from "@/components/ui/BaseTag.vue";
 import type {
   PromptItem,
   DictionaryItem,

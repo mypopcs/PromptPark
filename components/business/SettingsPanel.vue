@@ -7,24 +7,13 @@
         全局设置
       </h2>
       <div class="grid grid-cols-2 gap-8">
-        <div class="form-control w-full">
-          <label class="label"
-            ><span class="label-text font-medium">主题外观</span></label
-          >
-          <select
-            class="select select-bordered w-full"
-            v-model="formData.theme"
-            @change="saveSettings"
-          >
-            <option
-              v-for="opt in THEME_OPTIONS"
-              :key="opt.value"
-              :value="opt.value"
-            >
-              {{ opt.label }}
-            </option>
-          </select>
-        </div>
+        <BaseSelect
+          v-model="formData.theme"
+          label="主题外观"
+          size="sm"
+          :options="THEME_OPTIONS"
+          @change="saveSettings"
+        />
       </div>
     </section>
     <section class="card-body border-b-2 border-base-300">
@@ -33,15 +22,19 @@
       >
         <h2 class="card-title text-lg flex items-center gap-2">图床设置</h2>
         <div class="flex items-center gap-2">
-          <span class="text-sm text-base-content/70">当前图床</span>
-          <select
-            class="select select-bordered select-sm w-60"
+          <BaseSelect
             v-model="formData.imageHostProvider"
+            size="sm"
+            label="图床"
+            labelPosition="horizontal"
+            selectWidth="240px"
+            :options="[
+              { value: 'none', label: '不使用图床', tip: '以 Base64 本地存储' },
+              { value: 'github', label: 'Github', tip: '推荐' },
+            ]"
             @change="saveSettings"
-          >
-            <option value="none">不使用图床 (转为 Base64 存本地)</option>
-            <option value="github">Github Repo (推荐)</option>
-          </select>
+            class="w-60"
+          />
         </div>
       </div>
       <div class="flex justify-between items-center">
@@ -49,64 +42,39 @@
           v-if="formData.imageHostProvider === 'github'"
           class="space-y-4 animate-fade-in"
         >
-          <div class="form-control w-full">
-            <label class="label py-1"
-              ><span class="label-text text-xs"
-                >Github Token (必须包含 repo 权限)</span
-              ></label
-            >
-            <input
-              v-model.trim="formData.githubImageHost.token"
-              type="password"
-              class="input input-bordered input-sm w-full"
-              placeholder="ghp_..."
+          <BaseInput
+            v-model.trim="formData.githubImageHost.token"
+            type="password"
+            size="sm"
+            label="Github Token (必须包含 repo 权限)"
+            placeholder="ghp_..."
+            @blur="saveSettings"
+          />
+          <div class="grid grid-cols-3 gap-4">
+            <BaseInput
+              v-model.trim="formData.githubImageHost.repo"
+              size="sm"
+              label="仓库 (用户名/仓库名)"
+              placeholder="zhangsan/images"
+              @blur="saveSettings"
+            />
+            <BaseInput
+              v-model.trim="formData.githubImageHost.branch"
+              size="sm"
+              label="分支"
+              placeholder="master"
+              @blur="saveSettings"
+            />
+            <BaseInput
+              v-model.trim="formData.githubImageHost.path"
+              size="sm"
+              label="存储路径 (留空放根目录)"
+              placeholder="prompts/"
               @blur="saveSettings"
             />
           </div>
-          <div class="grid grid-cols-3 gap-4">
-            <div class="form-control w-full">
-              <label class="label py-1"
-                ><span class="label-text text-xs"
-                  >仓库 (用户名/仓库名)</span
-                ></label
-              >
-              <input
-                v-model.trim="formData.githubImageHost.repo"
-                type="text"
-                placeholder="例如: zhangsan/images"
-                class="input input-bordered input-sm w-full"
-                @blur="saveSettings"
-              />
-            </div>
-            <div class="form-control w-full">
-              <label class="label py-1"
-                ><span class="label-text text-xs">分支</span></label
-              >
-              <input
-                v-model.trim="formData.githubImageHost.branch"
-                type="text"
-                placeholder="例如: main"
-                class="input input-bordered input-sm w-full"
-                @blur="saveSettings"
-              />
-            </div>
-            <div class="form-control w-full">
-              <label class="label py-1"
-                ><span class="label-text text-xs"
-                  >存储路径 (留空放根目录)</span
-                ></label
-              >
-              <input
-                v-model.trim="formData.githubImageHost.path"
-                type="text"
-                placeholder="例如: uploads/"
-                class="input input-bordered input-sm w-full"
-                @blur="saveSettings"
-              />
-            </div>
-          </div>
           <p class="text-xs text-base-content/50 mt-2">
-            * 提示：上传的图片将通过
+            提示：上传的图片将通过
             <b>jsDelivr CDN</b> 加速分发，请确保您的仓库是
             <b>Public (公开)</b> 的，否则无法正常显示图片。
             <a
@@ -126,17 +94,19 @@
       >
         <h2 class="card-title text-lg flex items-center gap-2">数据同步</h2>
         <div class="flex items-center gap-2">
-          <span class="text-sm text-base-content/70">当前引擎</span>
-          <select
-            class="select select-bordered select-sm w-60"
+          <BaseSelect
             v-model="formData.syncProvider"
+            size="sm"
+            label="同步引擎"
+            labelPosition="horizontal"
+            selectWidth="240px"
+            :options="[
+              { value: 'none', label: '停用同步' },
+              { value: 'feishu', label: '飞书多维表格' },
+            ]"
             @change="saveSettings"
-          >
-            <option value="none">停用同步</option>
-            <option value="github">Github Gist</option>
-            <option value="feishu">飞书多维表格</option>
-            <option value="notion">Notion Database</option>
-          </select>
+            class="w-60"
+          />
         </div>
       </div>
 
@@ -151,39 +121,30 @@
         v-if="formData.syncProvider === 'github'"
         class="space-y-4 animate-fade-in"
       >
-        <div class="form-control w-full">
-          <label class="label">
-            <span class="label-text font-medium"
-              >Github Personal Access Token</span
-            >
+        <BaseInput
+          v-model.trim="formData.githubSync.token"
+          type="password"
+          label="Github Personal Access Token"
+          placeholder="ghp_..."
+          @blur="saveSettings"
+          size="sm"
+        >
+          <template #label-append>
             <a
               href="https://github.com/settings/tokens/new"
               target="_blank"
               class="label-text-alt link link-primary"
               >获取 Token</a
             >
-          </label>
-          <input
-            v-model.trim="formData.githubSync.token"
-            type="password"
-            class="input input-bordered w-full"
-            placeholder="ghp_..."
-            @blur="saveSettings"
-          />
-        </div>
-        <div class="form-control w-full">
-          <label class="label"
-            ><span class="label-text font-medium"
-              >Gist ID (留空则自动创建)</span
-            ></label
-          >
-          <input
-            v-model.trim="formData.githubSync.gistId"
-            type="text"
-            class="input input-bordered w-full font-mono text-sm"
-            @blur="saveSettings"
-          />
-        </div>
+          </template>
+        </BaseInput>
+        <BaseInput
+          v-model.trim="formData.githubSync.gistId"
+          label="Gist ID (留空则自动创建)"
+          @blur="saveSettings"
+          size="sm"
+          placeholder="ghs_......"
+        />
       </div>
 
       <div
@@ -191,59 +152,44 @@
         class="space-y-4 animate-fade-in"
       >
         <div class="grid grid-cols-2 gap-4">
-          <div class="form-control w-full">
-            <label class="label"
-              ><span class="label-text font-medium">App ID</span></label
-            >
-            <input
-              v-model.trim="formData.feishuSync.appId"
-              type="text"
-              class="input input-bordered w-full"
-              @blur="saveSettings"
-            />
-          </div>
-          <div class="form-control w-full">
-            <label class="label"
-              ><span class="label-text font-medium">App Secret</span></label
-            >
-            <input
-              v-model.trim="formData.feishuSync.appSecret"
-              type="password"
-              class="input input-bordered w-full"
-              @blur="saveSettings"
-            />
-          </div>
-        </div>
-        <div class="form-control w-full">
-          <label class="label">
-            <span class="label-text font-medium">多维表格 App Token</span>
-            <span class="label-text-alt text-base-content/50"
-              >URL 中 base/ 后面的字符</span
-            >
-          </label>
-          <input
-            v-model.trim="formData.feishuSync.appToken"
-            type="text"
-            class="input input-bordered w-full"
+          <BaseInput
+            v-model.trim="formData.feishuSync.appId"
+            label="App ID"
             @blur="saveSettings"
+            size="sm"
+            placeholder="cli_......"
+          />
+          <BaseInput
+            v-model.trim="formData.feishuSync.appSecret"
+            type="password"
+            label="App Secret"
+            @blur="saveSettings"
+            size="sm"
+            placeholder="******"
           />
         </div>
+        <BaseInput
+          v-model.trim="formData.feishuSync.appToken"
+          label="多维表格 App Token"
+          help-text="URL 中 base/ 后面的字符"
+          @blur="saveSettings"
+          size="sm"
+          placeholder="CXi......"
+        />
 
         <div class="divider text-xs text-base-content/50">
           多表映射关系 (Table ID)
         </div>
         <div class="grid grid-cols-3 gap-4 bg-base-200/50 p-4 rounded-box">
-          <div class="form-control" v-for="key in tableKeys" :key="key.id">
-            <label class="label py-1"
-              ><span class="label-text text-xs">{{ key.label }}</span></label
-            >
-            <input
-              v-model.trim="formData.feishuSync.mapping[key.id]"
-              type="text"
-              class="input input-bordered input-sm w-full"
-              @blur="saveSettings"
-            />
-          </div>
+          <BaseInput
+            v-for="key in tableKeys"
+            :key="key.id"
+            v-model.trim="formData.feishuSync.mapping[key.id]"
+            size="sm"
+            :label="key.label"
+            placeholder="tbl_......"
+            @blur="saveSettings"
+          />
         </div>
       </div>
 
@@ -251,32 +197,25 @@
         v-if="formData.syncProvider === 'notion'"
         class="space-y-4 animate-fade-in"
       >
-        <div class="form-control w-full">
-          <label class="label"
-            ><span class="label-text font-medium"
-              >Notion Integration Token</span
-            ></label
-          >
-          <input
-            v-model.trim="formData.notionSync.token"
-            type="password"
-            class="input input-bordered w-full"
-            @blur="saveSettings"
-          />
-        </div>
+        <BaseInput
+          v-model.trim="formData.notionSync.token"
+          type="password"
+          label="Notion Integration Token"
+          placeholder="secret_......"
+          @blur="saveSettings"
+          size="sm"
+        />
         <div class="divider text-xs text-base-content/50">Database ID 映射</div>
         <div class="grid grid-cols-3 gap-4 bg-base-200/50 p-4 rounded-box">
-          <div class="form-control" v-for="key in tableKeys" :key="key.id">
-            <label class="label py-1"
-              ><span class="label-text text-xs">{{ key.label }}</span></label
-            >
-            <input
-              v-model.trim="formData.notionSync.mapping[key.id]"
-              type="text"
-              class="input input-bordered input-sm w-full"
-              @blur="saveSettings"
-            />
-          </div>
+          <BaseInput
+            v-for="key in tableKeys"
+            :key="key.id"
+            v-model.trim="formData.notionSync.mapping[key.id]"
+            size="sm"
+            :label="key.label"
+            @blur="saveSettings"
+            placeholder="tbl_......"
+          />
         </div>
       </div>
 
@@ -284,8 +223,10 @@
         v-if="formData.syncProvider !== 'none'"
         class="flex gap-4 mt-4 border-t border-base-200"
       >
-        <button
-          class="btn btn-neutral flex-1"
+        <BaseButton
+          variant="primary"
+          type="soft"
+          size="md"
           :disabled="isSyncing"
           @click="handlePush"
         >
@@ -293,11 +234,12 @@
             v-if="isSyncing"
             class="loading loading-spinner loading-xs"
           ></span>
-          上云：覆盖云端数据
-        </button>
-
-        <button
-          class="btn btn-outline btn-primary flex-1"
+          上传并覆盖云端数据
+        </BaseButton>
+        <BaseButton
+          variant="success"
+          type="soft"
+          size="md"
           :disabled="isSyncing"
           @click="handlePull"
         >
@@ -305,8 +247,8 @@
             v-if="isSyncing"
             class="loading loading-spinner loading-xs"
           ></span>
-          下云：覆盖本地数据
-        </button>
+          下载并覆盖本地数据
+        </BaseButton>
       </div>
     </section>
 
@@ -319,9 +261,10 @@
               将永久删除本地存储的所有提示词和设置，不可恢复。（不影响云端数据）
             </p>
           </div>
-          <button class="btn btn-error" @click="handleClearData">
+          <BaseButton variant="error" size="md" @click="handleClearData">
+            <i class="ri-delete-bin-5-line text-lg"></i>
             清空数据
-          </button>
+          </BaseButton>
         </div>
       </div>
     </section>
@@ -347,6 +290,10 @@ import type {
 } from "@/types";
 import type { SyncDataPayload } from "@/utils/sync";
 import { SyncFactory } from "@/utils/sync/SyncFactory";
+import BaseButton from "@/components/ui/BaseButton.vue";
+import BaseInput from "@/components/ui/BaseInput.vue";
+import BaseTag from "@/components/ui/BaseTag.vue";
+import BaseSelect from "@/components/ui/BaseSelect.vue";
 
 const { setTheme, THEME_OPTIONS } = useTheme();
 const { confirm } = useConfirm();
@@ -354,7 +301,6 @@ const { success, error } = useMessage();
 
 const isSyncing = ref(false);
 
-// 用于循环渲染 6 个表的映射输入框 (Type-safe)
 const tableKeys: { id: keyof TableMapping; label: string }[] = [
   { id: "promptsTableId", label: "提示词表 ID" },
   { id: "dictionariesTableId", label: "词典表 ID" },
@@ -364,16 +310,13 @@ const tableKeys: { id: keyof TableMapping; label: string }[] = [
   { id: "tagsTableId", label: "标签表 ID" },
 ];
 
-// 极其严谨的表单状态初始化，彻底杜绝 undefined 导致的 v-model 报错
 const formData = ref<AppSettings>(JSON.parse(JSON.stringify(DEFAULT_SETTINGS)));
 
-// --- 加载与保存设置 ---
 const loadSettings = async () => {
   const storedSettings = await syncStore.get<AppSettings>(
     STORAGE_KEYS.SETTINGS,
   );
 
-  // 深度防御：如果本地缓存缺少某些嵌套对象(由于版本升级)，进行深度合并
   formData.value = {
     ...DEFAULT_SETTINGS,
     ...(storedSettings || {}),
@@ -405,16 +348,12 @@ const loadSettings = async () => {
 };
 
 const saveSettings = async () => {
-  // 当主题改变时立刻生效
   setTheme(formData.value.theme);
-  // 🌟 存入 chrome.storage，此时 Content Script 会立刻收到 onChange 信
   await syncStore.set(STORAGE_KEYS.SETTINGS, formData.value);
-  // 不弹 toast 防止频繁打扰，这属于静默保存
 };
 
 onMounted(() => loadSettings());
 
-// --- 本地数据打包与解包逻辑 ---
 const packLocalData = async (): Promise<SyncDataPayload> => {
   const [prompts, dictionaries, categories, platforms, models, tags] =
     await Promise.all([
@@ -448,7 +387,6 @@ const unpackToLocal = async (payload: SyncDataPayload) => {
   ]);
 };
 
-// --- 同步核心逻辑 ---
 const handlePush = async () => {
   const isOk = await confirm(
     "确定将本地数据推送到云端吗？这将覆盖云端原有数据。",
@@ -459,27 +397,21 @@ const handlePush = async () => {
 
   isSyncing.value = true;
   try {
-    // 强制保存一次最新配置
     await saveSettings();
 
-    // 1. 获取工厂实例
     const provider = SyncFactory.createProvider(
       formData.value.syncProvider,
       formData.value,
     );
 
-    // 2. 测试连通性
     const isConnected = await provider.testConnection();
     if (!isConnected)
       throw new Error("连通性测试失败，请检查您的 Token 或网络配置");
 
-    // 3. 打包本地数据
     const payload = await packLocalData();
 
-    // 4. 执行推送
     const resultId = await provider.pushData(payload);
 
-    // 5. 如果是 Github 新建的 Gist，回填 ID
     if (
       formData.value.syncProvider === "github" &&
       resultId &&
@@ -511,16 +443,13 @@ const handlePull = async () => {
   try {
     await saveSettings();
 
-    // 1. 获取工厂实例
     const provider = SyncFactory.createProvider(
       formData.value.syncProvider,
       formData.value,
     );
 
-    // 2. 执行拉取
     const payload = await provider.pullData();
 
-    // 3. 覆盖本地
     await unpackToLocal(payload);
 
     success("☁️ 云端数据已成功拉取并覆盖本地！");
@@ -532,7 +461,6 @@ const handlePull = async () => {
   }
 };
 
-// --- 清空数据 ---
 const handleClearData = async () => {
   const isOk = await confirm(
     "确定要清空所有本地数据吗？此操作不可逆转！",

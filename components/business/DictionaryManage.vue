@@ -7,9 +7,10 @@
           管理您的词典及下属分类，分类将与词典强绑定
         </p>
       </div>
-      <button class="btn btn-primary shadow-sm" @click="openAddModal">
+      <BaseButton variant="primary" size="md" @click="openAddModal">
+        <i class="ri-add-line text-lg"></i>
         新增词典和分类
-      </button>
+      </BaseButton>
     </div>
 
     <div class="flex-1 overflow-hidden">
@@ -18,6 +19,9 @@
         :data="dictionaries"
         :loading="isLoading"
         :total="dictionaries.length"
+        showActions
+        @edit="openEditModal"
+        @delete="handleDelete"
       >
         <template #cell-coverImage="{ row }">
           <div class="avatar">
@@ -44,22 +48,6 @@
             >¥ {{ row.price?.toFixed(2) || "0.00" }}</span
           >
         </template>
-        <template #cell-actions="{ row }">
-          <div class="flex gap-2">
-            <button
-              class="btn btn-xs btn-ghost text-primary"
-              @click="openEditModal(row)"
-            >
-              编辑
-            </button>
-            <button
-              class="btn btn-xs btn-ghost text-error"
-              @click="handleDelete(row)"
-            >
-              删除
-            </button>
-          </div>
-        </template>
       </BaseTable>
     </div>
 
@@ -81,6 +69,7 @@ import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
 import { useConfirm } from "@/composables/useConfirm";
 import { useMessage } from "@/composables/useMessage";
+import BaseButton from "@/components/ui/BaseButton.vue";
 
 const { confirm } = useConfirm();
 const { success } = useMessage();

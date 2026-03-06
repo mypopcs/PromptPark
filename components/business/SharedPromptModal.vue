@@ -35,6 +35,7 @@
           <BaseSelect
             v-model="formData.dictionaryId"
             label="所属词典"
+            size="sm"
             :required="true"
             :options="
               dictionaries.map((dict) => ({
@@ -48,6 +49,7 @@
           <BaseSelect
             v-model="formData.categoryId"
             label="所属分类"
+            size="sm"
             :required="true"
             :options="
               availableCategories.map((cat) => ({

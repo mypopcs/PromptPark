@@ -23,20 +23,20 @@
                   class="flex flex-col text-[10px] leading-none opacity-50"
                   :class="{ 'opacity-100 text-primary': sortKey === col.key }"
                 >
-                  <span
+                  <i
+                    class="ri-arrow-up-s-fill"
                     :class="{
                       'text-primary font-bold':
                         sortKey === col.key && sortOrder === 'asc',
                     }"
-                    >▲</span
-                  >
-                  <span
+                  ></i>
+                  <i
+                    class="ri-arrow-down-s-fill -mt-2"
                     :class="{
                       'text-primary font-bold':
                         sortKey === col.key && sortOrder === 'desc',
                     }"
-                    >▼</span
-                  >
+                  ></i>
                 </span>
               </div>
             </th>
@@ -58,20 +58,7 @@
               class="text-center py-16 text-base-content/50"
             >
               <div class="flex flex-col items-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="w-12 h-12 opacity-20"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
-                  />
-                </svg>
+                <i class="ri-archive-box-line text-5xl opacity-20"></i>
                 <span>暂无数据</span>
               </div>
             </td>
@@ -80,7 +67,30 @@
           <template v-else>
             <tr v-for="(row, index) in data" :key="index" class="hover">
               <td v-for="col in columns" :key="String(col.key)">
+                <!-- 操作列内置渲染 -->
+                <template v-if="col.key === 'actions' && showActions">
+                  <div class="flex gap-2">
+                    <BaseButton
+                      variant="primary"
+                      size="sm"
+                      type="ghost"
+                      @click="$emit('edit', row)"
+                    >
+                      编辑
+                    </BaseButton>
+                    <BaseButton
+                      variant="error"
+                      size="sm"
+                      type="ghost"
+                      @click="$emit('delete', row)"
+                    >
+                      删除
+                    </BaseButton>
+                  </div>
+                </template>
+                <!-- 自定义列插槽 -->
                 <slot
+                  v-else
                   :name="`cell-${String(col.key)}`"
                   :row="row"
                   :index="index"
@@ -102,23 +112,27 @@
         共 <strong class="text-base-content">{{ total }}</strong> 条记录
       </span>
       <div class="join">
-        <button
-          class="join-item btn btn-sm"
-          :disabled="currentPage === 1 || loading"
+        <BaseButton
+          variant="default"
+          size="sm"
+          type="ghost"
+          shape="square"
           @click="changePage(currentPage - 1)"
         >
-          <<
-        </button>
-        <button class="join-item btn btn-sm no-animation pointer-events-none">
+          <i class="ri-arrow-left-s-line"></i>
+        </BaseButton>
+        <BaseButton variant="default" size="sm" type="ghost" shape="square">
           {{ currentPage }}
-        </button>
-        <button
-          class="join-item btn btn-sm"
-          :disabled="currentPage * pageSize >= total || loading"
+        </BaseButton>
+        <BaseButton
+          variant="default"
+          size="sm"
+          type="ghost"
+          shape="square"
           @click="changePage(currentPage + 1)"
         >
-          >>
-        </button>
+          <i class="ri-arrow-right-s-line"></i>
+        </BaseButton>
       </div>
     </div>
   </div>
@@ -127,6 +141,8 @@
 <script setup lang="ts" generic="T extends Record<string, unknown>">
 // 注意上面这一行！ generic="T" 是 Vue 3.3+ 的泛型支持
 import { ref } from "vue";
+import BaseButton from "./BaseButton.vue";
+import BaseTag from "./BaseTag.vue";
 
 // 严格定义列的类型：key 只能是 T 包含的属性，或者是特殊的 'actions' 列
 export interface TableColumn<T> {
@@ -145,19 +161,27 @@ const props = withDefaults(
     total?: number;
     currentPage?: number;
     pageSize?: number;
+    showActions?: boolean;
+    showEdit?: boolean;
+    showDelete?: boolean;
   }>(),
   {
     loading: false,
     total: 0,
     currentPage: 1,
     pageSize: 10,
+    showActions: false,
+    showEdit: true,
+    showDelete: true,
   },
 );
 
-// 定义向外抛出的事件 (排序、翻页)
+// 定义向外抛出的事件 (排序、翻页、操作)
 const emit = defineEmits<{
   (e: "update:currentPage", page: number): void;
   (e: "sort", key: keyof T, order: "asc" | "desc" | null): void;
+  (e: "edit", row: T): void;
+  (e: "delete", row: T): void;
 }>();
 
 // 内部排序状态

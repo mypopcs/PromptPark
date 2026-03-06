@@ -1,29 +1,18 @@
 <template>
   <div class="collect-action-container">
     <Transition name="bounce">
-      <button
+      <BaseButton
         v-show="showButton"
-        class="fixed z-[999] btn btn-sm btn-primary shadow-2xl rounded-full px-4 font-bold transform -translate-x-1/2"
+        variant="primary"
+        size="sm"
+        class="fixed z-[999] shadow-2xl px-4 font-bold"
         :style="{ top: buttonPos.y + 'px', left: buttonPos.x + 'px' }"
         @mousedown.prevent
         @click.stop="openCollectModal"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-4 w-4 mr-1"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 4v16m8-8H4"
-          />
-        </svg>
+        <i class="ri-add-line mr-1"></i>
         采集到词库 (Ctrl+Alt+A)
-      </button>
+      </BaseButton>
     </Transition>
 
     <SharedPromptModal
@@ -43,6 +32,7 @@ import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
 import { createDefaultPrompt } from "@/utils/factories";
 import type { PromptItem } from "@/types";
+import BaseButton from "@/components/ui/BaseButton.vue";
 
 const { success } = useMessage();
 const showButton = ref(false);

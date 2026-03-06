@@ -1,30 +1,32 @@
 <template>
   <div class="prompt-park-drawer-wrapper">
-    <div
-      v-show="!isOpen"
+    <!--抽屉开关-->
+    <BaseButton
+      variant="primary"
+      size="sm"
+      class="fixed right-1 top-1/2 rounded-l-lg z-[99] overflow-hidden transition-all duration-300 ease-in-out hover:px-4 flex items-center justify-center"
       @click="isOpen = true"
-      class="fixed right-0 top-1/2 -translate-y-1/2 bg-primary text-primary-content rounded-l-sm cursor-pointer z-[99] shadow-[-4px_0_15px_rgba(0,0,0,0.2)] overflow-hidden transition-all duration-300 ease-in-out hover:px-4 select-none"
+      title="展开/折叠快捷键：Ctrl+Shift+Z"
+      :style="{ width: isHovered ? 'auto' : '32px' }"
+      @mouseenter="isHovered = true"
+      @mouseleave="isHovered = false"
     >
-      <div class="relative h-[28px] w-full px-2">
-        <div class="animate-slide-up">
-          <p
-            class="text-xs font-black h-[28px] flex items-center justify-center"
-          >
-            Prompt Park
-          </p>
-          <p
-            class="text-xs font-black h-[28px] flex items-center justify-center"
-          >
-            Ctrl+Shift+Z
-          </p>
-        </div>
-      </div>
-    </div>
-
+      <i class="ri-flashlight-fill text-sm shrink-0"></i>
+      <p
+        class="text-xs font-black h-full flex items-center justify-center transition-all duration-300 ease-in-out shrink-0"
+        :class="{
+          'ml-2 opacity-100 w-auto': isHovered,
+          'ml-0 opacity-0 w-0': !isHovered,
+        }"
+      >
+        PromptPark
+      </p>
+    </BaseButton>
+    <!--抽屉内容-->
     <Transition name="drawer-physic">
       <div
         v-if="isOpen"
-        class="fixed right-0 top-0 h-screen w-[560px] bg-base-100 shadow-[-20px_0_60px_rgba(0,0,0,0.2)] z-[999999] border-l border-base-200 flex flex-col overflow-hidden"
+        class="fixed right-0 top-0 h-screen w-[560px] bg-base-100 shadow-[-20px_0_60px_rgba(0,0,0,0.2)] z-[9999] border-l border-base-200 flex flex-col overflow-hidden"
       >
         <header
           class="p-4 flex items-center justify-between bg-base-100 border-b border-base-200 shrink-0"
@@ -34,27 +36,18 @@
               label="选择词典"
               v-model="selectedDictId"
               :options="dictionaryOptions"
+              placeholder="请选择词典"
             />
           </div>
-          <button
-            class="btn btn-sm btn-circle btn-ghost"
+          <BaseButton
+            variant="default"
+            type="ghost"
+            size="sm"
+            shape="square"
             @click="isOpen = false"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+            <i class="ri-close-line text-lg"></i>
+          </BaseButton>
         </header>
 
         <section class="p-4 bg-base-200/30 shrink-0">
@@ -74,58 +67,39 @@
                   <span
                     class="cursor-pointer opacity-60 hover:opacity-100"
                     @click="removeFromCombo(item.id)"
-                    >✕</span
-                  >
+                    ><i class="ri-close-line"></i
+                  ></span>
                 </span>
               </TransitionGroup>
-              <input
+              <BaseInput
+                type="textarea"
                 v-model="manualInput"
                 @keyup.enter="addManualToken"
-                class="bg-transparent border-none outline-none text-xs flex-1 min-w-[80px] h-10"
+                ghost
                 placeholder="输入或选择提示词..."
+                input-class="border-none hover:border-none focus:border-none"
               />
             </div>
-            <div class="grid grid-cols-6 gap-2">
-              <button
-                class="btn btn-primary shadow-sm btn-sm col-span-5"
+            <div class="grid grid-cols-8 gap-2">
+              <BaseButton
+                variant="primary"
+                size="md"
                 @click="copyAll"
+                class="col-span-7"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-3.5 h-3.5 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
-                  />
-                </svg>
+                <i class="ri-file-copy-line mr-1"></i>
                 复制组合
-              </button>
-              <button
-                class="btn btn-sm btn-square btn-ghost"
+              </BaseButton>
+
+              <BaseButton
+                variant="error"
+                type="ghost"
+                size="md"
+                shape="square"
                 @click="combinationList = []"
-                title="清空全部"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-4 h-4 opacity-40"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
+                <i class="ri-delete-bin-line opacity-40"></i>
+              </BaseButton>
             </div>
           </div>
         </section>
@@ -134,75 +108,40 @@
           class="shrink-0 bg-base-100 border-b border-base-200 sticky top-0 z-20"
         >
           <div class="px-4 pt-4 pb-2">
-            <div class="relative">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 opacity-30"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                v-model="searchQuery"
-                class="input input-base input-bordered w-full pl-9 rounded-sm bg-base-200/50"
-                placeholder="搜索提示词..."
-              />
-            </div>
+            <BaseInput
+              search-icon
+              size="md"
+              v-model="searchQuery"
+              placeholder="搜索提示词..."
+            />
           </div>
           <div class="flex gap-2 overflow-x-auto no-scrollbar px-4 pb-3">
-            <button
+            <BaseButton
+              variant="primary"
+              size="xs"
               @click="selectedCatId = 'all'"
-              class="btn btn-sm rounded-sm whitespace-nowrap px-4 border-none"
-              :class="
-                selectedCatId === 'all'
-                  ? 'btn-primary'
-                  : 'bg-base-200 text-base-content/60 hover:bg-base-300'
-              "
             >
-              全部
-            </button>
-            <button
+              全部分类
+            </BaseButton>
+            <BaseButton
               v-for="cat in currentCategories"
               :key="cat.id"
+              variant="default"
+              type="ghost"
+              size="xs"
               @click="selectedCatId = cat.id"
-              class="btn btn-sm rounded-sm whitespace-nowrap px-4 border-none"
-              :class="
-                selectedCatId === cat.id
-                  ? 'btn-primary'
-                  : 'bg-base-200 text-base-content/60 hover:bg-base-300'
-              "
             >
               {{ cat.name }}
-            </button>
+            </BaseButton>
           </div>
         </nav>
 
         <main class="p-4 grid grid-cols-3 gap-3 relative h-16">
           <div
             v-if="filteredPrompts.length === 0"
-            class="col-span-2 py-20 text-center opacity-20 flex flex-col items-center"
+            class="col-span-3 py-20 text-center opacity-20 flex flex-col items-center"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-12 h-12 mb-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1"
-                d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
-              />
-            </svg>
+            <i class="ri-database-2-line text-5xl mb-2"></i>
             <span class="text-xs font-bold uppercase tracking-widest"
               >请先添加提示词</span
             >
@@ -233,11 +172,14 @@ import type {
   TagItem,
 } from "@/types";
 import BaseSelect from "@/components/ui/BaseSelect.vue";
+import BaseButton from "../ui/BaseButton.vue";
 import PromptCard from "@/components/ui/PromptCard.vue";
+import BaseInput from "../ui/BaseInput.vue";
 
 const { success, error } = useMessage();
 
 const isOpen = ref(false);
+const isHovered = ref(false);
 const dictionaries = ref<DictionaryItem[]>([]);
 const allCategories = ref<CategoryItem[]>([]);
 const allPrompts = ref<PromptItem[]>([]);
@@ -408,5 +350,12 @@ onMounted(() => {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+/* 确保BaseButton的flex布局生效（如果组件内部样式冲突） */
+:deep(.BaseButton) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
 }
 </style>

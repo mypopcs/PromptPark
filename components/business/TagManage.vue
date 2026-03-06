@@ -7,23 +7,10 @@
           管理系统中的所有标签，标签颜色将由系统自动生成绝美莫兰迪色
         </p>
       </div>
-      <button class="btn btn-primary shadow-sm" @click="openModal">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="2"
-          stroke="currentColor"
-          class="w-5 h-5"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M12 4.5v15m7.5-7.5h-15"
-          />
-        </svg>
+      <BaseButton variant="primary" size="md" @click="openModal">
+        <i class="ri-add-line text-lg"></i>
         新建标签
-      </button>
+      </BaseButton>
     </div>
 
     <div class="flex-1 overflow-hidden">
@@ -32,30 +19,12 @@
         :data="tableData"
         :loading="isLoading"
         :total="tableData.length"
+        showActions
+        @edit="openEditModal"
+        @delete="handleDelete"
       >
         <template #cell-name="{ row }">
-          <span
-            class="badge border-none text-white font-medium shadow-sm"
-            :style="{ backgroundColor: row.color }"
-          >
-            {{ row.name }}
-          </span>
-        </template>
-        <template #cell-actions="{ row }">
-          <div class="flex gap-2">
-            <button
-              class="btn btn-xs btn-ghost text-primary"
-              @click="openEditModal(row)"
-            >
-              编辑
-            </button>
-            <button
-              class="btn btn-xs btn-ghost text-error"
-              @click="handleDelete(row)"
-            >
-              删除
-            </button>
-          </div>
+          <BaseTag :label="row.name" :color="row.color" size="small" />
         </template>
       </BaseTable>
     </div>
@@ -84,6 +53,8 @@ import { ref, onMounted } from "vue";
 import BaseTable, { type TableColumn } from "@/components/ui/BaseTable.vue";
 import BaseModal from "@/components/ui/BaseModal.vue";
 import BaseInput from "@/components/ui/BaseInput.vue";
+import BaseButton from "@/components/ui/BaseButton.vue";
+import BaseTag from "@/components/ui/BaseTag.vue";
 import type { TagItem, PromptItem } from "@/types";
 import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";

@@ -17,24 +17,21 @@
         class="badge badge-primary badge-sm gap-1 pl-2 pr-1 py-3"
       >
         {{ item.name }}
-        <button
+        <!-- <button
           @click.stop="removeOption(item.id)"
           class="btn btn-ghost btn-xs btn-circle h-4 w-4 min-h-0 text-primary-content hover:bg-primary-focus"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            class="inline-block w-3 h-3 stroke-current"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-        </button>
+          <i class="ri-close-line text-xs"></i>
+        </button> -->
+        <BaseButton
+          variant="default"
+          size="sm"
+          type="ghost"
+          shape="square"
+          @click.stop="removeOption(item.id)"
+        >
+          <i class="ri-close-line text-xs"></i>
+        </BaseButton>
       </span>
 
       <input
@@ -67,20 +64,7 @@
             @click.stop="handleEnter"
             class="text-gray-500 text-sm flex items-center gap-2"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="2"
-              stroke="currentColor"
-              class="w-4 h-4"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
+            <i class="ri-add-line text-base"></i>
             按回车创建 "{{ inputValue }}"
           </span>
         </li>
@@ -91,6 +75,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
+import BaseButton from "./BaseButton.vue";
 
 export interface BaseOption {
   id: string;

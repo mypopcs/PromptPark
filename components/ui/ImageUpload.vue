@@ -36,45 +36,22 @@
         >
           <span class="text-white text-sm font-medium">点击更换图片</span>
         </div>
-        <button
+        <BaseButton
+          variant="default"
+          size="xs"
+          shape="circle"
           @click.stop="clearImage"
-          class="btn btn-xs btn-circle btn-error absolute top-2 right-2 opacity-0 group-hover:opacity-100 z-20 shadow-md"
+          class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 z-20 shadow-md"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="2"
-            stroke="currentColor"
-            class="w-3 h-3"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+          <i class="ri-close-line text-xs"></i>
+        </BaseButton>
       </template>
 
       <div
         v-else
         class="flex flex-col items-center text-base-content/50 group-hover:text-primary transition-colors"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1.5"
-          stroke="currentColor"
-          class="w-8 h-8 mb-1"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-          />
-        </svg>
+        <i class="ri-image-add-line text-3xl mb-1"></i>
         <span class="text-xs font-medium">点击上传图片 (最大 5MB)</span>
       </div>
     </div>

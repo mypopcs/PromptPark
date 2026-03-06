@@ -9,7 +9,7 @@ export type MessageType = "info" | "success" | "warning" | "error";
 export interface MessageItem {
   id: string;
   content: string;
-  type: MessageType;
+  variant: MessageType;
   duration: number;
 }
 
@@ -22,12 +22,12 @@ export function useMessage() {
    */
   const showMessage = (
     content: string,
-    type: MessageType = "info",
+    variant: MessageType = "info",
     duration = 3000,
   ) => {
     const id = Math.random().toString(36).substring(2, 9); // 生成简易唯一 ID
 
-    messages.value.push({ id, content, type, duration });
+    messages.value.push({ id, content, variant, duration });
 
     // 自动定时移除
     if (duration > 0) {

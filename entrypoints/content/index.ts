@@ -3,6 +3,7 @@ import { createApp, type App as VueApp } from "vue";
 import App from "./App.vue";
 // 👇 这里的路径必须指向你项目里配置了 @tailwind 的那个真实 CSS 文件！
 import "@/assets/tailwind.css";
+import "remixicon/fonts/remixicon.css"; // 引入 Remix Icon
 import { logger } from "@/utils/logger";
 
 export default defineContentScript({
