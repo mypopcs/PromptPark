@@ -1,106 +1,133 @@
 <template>
-  <BaseModal
-    v-model="isVisible"
-    :title="modalTitle"
-    :confirmText="confirmButtonText"
-    widthClass="max-w-4xl"
-    @confirm="handleSave"
+  <Dialog
+    v-model:visible="isVisible"
+    :header="modalTitle"
+    :style="{ width: '900px' }"
+    :modal="true"
   >
-    <div class="grid grid-cols-2 gap-2">
+    <div class="grid grid-cols-2 gap-4">
       <div class="space-y-4">
-        <BaseInput
-          v-model.trim="formData.prompt"
-          label="提示词"
-          :required="true"
-          type="textarea"
-          placeholder="输入核心提示词......"
-        />
-        <BaseInput
-          v-model.trim="formData.translation"
-          label="中文释义与结构说明"
-          :required="true"
-          type="textarea"
-          placeholder="输入中文释义及用法提示..."
-        />
-        <MultiSelectInput
-          label="关联标签"
-          v-model="formData.tags"
-          :options="tagsList"
-          :allowCreate="true"
-          :required="true"
-          placeholder="输入新标签名称回车..."
-          @create="handleCreateTag"
-        />
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium">
+            提示词 <span class="text-red-500">*</span>
+          </label>
+          <Textarea
+            v-model.trim="formData.prompt"
+            placeholder="输入核心提示词......"
+            rows="3"
+          />
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium">
+            中文释义与结构说明 <span class="text-red-500">*</span>
+          </label>
+          <Textarea
+            v-model.trim="formData.translation"
+            placeholder="输入中文释义及用法提示..."
+            rows="3"
+          />
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium">
+            关联标签 <span class="text-red-500">*</span>
+          </label>
+          <MultiSelect
+            v-model="formData.tags"
+            :options="tagsList"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="输入新标签名称回车..."
+            editable
+            :showToggleAll="false"
+          />
+        </div>
         <div class="grid grid-cols-2 gap-2">
-          <BaseSelect
-            v-model="formData.dictionaryId"
-            label="所属词典"
-            size="sm"
-            :required="true"
-            :options="
-              dictionaries.map((dict) => ({
-                value: dict.id,
-                label: dict.name,
-              }))
-            "
-            placeholder="请选择词典"
-            @change="handleDictChange"
-          />
-          <BaseSelect
-            v-model="formData.categoryId"
-            label="所属分类"
-            size="sm"
-            :required="true"
-            :options="
-              availableCategories.map((cat) => ({
-                value: cat.id,
-                label: cat.name,
-              }))
-            "
-            :placeholder="formData.dictionaryId ? '请选择分类' : '请先选择词典'"
-            :disabled="!formData.dictionaryId"
-          />
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium">
+              所属词典 <span class="text-red-500">*</span>
+            </label>
+            <Select
+              v-model="formData.dictionaryId"
+              :options="
+                dictionaries.map((dict) => ({
+                  value: dict.id,
+                  label: dict.name,
+                }))
+              "
+              optionLabel="label"
+              optionValue="value"
+              placeholder="请选择词典"
+              @change="handleDictChange"
+            />
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium">
+              所属分类 <span class="text-red-500">*</span>
+            </label>
+            <Select
+              v-model="formData.categoryId"
+              :options="
+                availableCategories.map((cat) => ({
+                  value: cat.id,
+                  label: cat.name,
+                }))
+              "
+              optionLabel="label"
+              optionValue="value"
+              :placeholder="
+                formData.dictionaryId ? '请选择分类' : '请先选择词典'
+              "
+              :disabled="!formData.dictionaryId"
+            />
+          </div>
         </div>
       </div>
       <div class="space-y-4">
-        <BaseInput
-          v-model.trim="formData.notes"
-          label="备注"
-          :required="false"
-          type="textarea"
-          placeholder="输入备注信息..."
-        />
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium">备注</label>
+          <Textarea
+            v-model.trim="formData.notes"
+            placeholder="输入备注信息..."
+            rows="3"
+          />
+        </div>
         <div class="grid grid-cols-2 gap-2">
-          <MultiSelectInput
-            v-model="formData.platforms"
-            label="适用平台"
-            :required="false"
-            :options="platformsList"
-            placeholder="请先选择平台..."
-            @update:modelValue="handlePlatformChange"
-          />
-          <MultiSelectInput
-            v-model="formData.models"
-            label="适用模型"
-            :required="false"
-            :options="availableModels"
-            :disabled="formData.platforms.length === 0"
-            placeholder="请先选择模型..."
-          />
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium">适用平台</label>
+            <MultiSelect
+              v-model="formData.platforms"
+              :options="platformsList"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="请先选择平台..."
+              @update:modelValue="handlePlatformChange"
+            />
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium">适用模型</label>
+            <MultiSelect
+              v-model="formData.models"
+              :options="availableModels"
+              optionLabel="name"
+              optionValue="id"
+              :disabled="formData.platforms.length === 0"
+              placeholder="请先选择模型..."
+            />
+          </div>
         </div>
 
         <ImageUpload v-model="formData.thumbnail" label="缩略图" />
       </div>
     </div>
-  </BaseModal>
+    <template #footer>
+      <Button text severity="secondary" @click="isVisible = false">取消</Button>
+      <Button @click="handleSave">{{ confirmButtonText }}</Button>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import BaseModal from "@/components/ui/BaseModal.vue";
-import BaseSelect from "@/components/ui/BaseSelect.vue";
-import BaseInput from "@/components/ui/BaseInput.vue";
-import MultiSelectInput from "@/components/ui/MultiSelectInput.vue";
 import ImageUpload from "@/components/ui/ImageUpload.vue";
 import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
@@ -139,7 +166,6 @@ const confirmButtonText = computed(() =>
   props.mode === "collect" ? "采集" : "提交",
 );
 
-// 数据列表
 const dictionaries = ref<DictionaryItem[]>([]);
 const categories = ref<CategoryItem[]>([]);
 const platformsList = ref<PlatformItem[]>([]);
@@ -147,7 +173,6 @@ const allModelsList = ref<AIModelItem[]>([]);
 const tagsList = ref<TagItem[]>([]);
 const formData = ref<PromptItem>(createDefaultPrompt());
 
-// 🌟 核心：清洗 ID 数组，防止出现对象
 const ensureIdArray = (data: any) => {
   if (!Array.isArray(data)) return [];
   return data
@@ -183,7 +208,6 @@ watch(
         formData.value = {
           ...createDefaultPrompt(),
           ...raw,
-          // 🌟 强力清洗进入表单的数据
           platforms: ensureIdArray(raw.platforms),
           models: ensureIdArray(raw.models),
           tags: ensureIdArray(raw.tags),
@@ -195,7 +219,6 @@ watch(
   },
 );
 
-// 🌟 联动过滤逻辑
 const availableCategories = computed(() =>
   categories.value.filter(
     (c) => c.dictionaryId === formData.value.dictionaryId,
@@ -210,19 +233,10 @@ const availableModels = computed(() => {
 
 const handleDictChange = () => (formData.value.categoryId = "");
 const handlePlatformChange = () => {
-  // 切换平台时，自动移除不再匹配的模型 ID
   const validModelIds = availableModels.value.map((m) => m.id);
   formData.value.models = formData.value.models.filter((id) =>
     validModelIds.includes(id),
   );
-};
-
-const handleCreateTag = async (tagName: string) => {
-  const newTag = createDefaultTag(tagName);
-  tagsList.value.unshift(newTag);
-  formData.value.tags.push(newTag.id);
-  await localStore.set(STORAGE_KEYS.TAGS, tagsList.value);
-  success(`标签 "${tagName}" 已创建`);
 };
 
 const handleSave = () => {
@@ -236,7 +250,6 @@ const handleSave = () => {
     return;
   }
 
-  // 🌟 再次确认导出的数据是纯净的 ID 数组
   const finalPayload = {
     ...JSON.parse(JSON.stringify(formData.value)),
     platforms: ensureIdArray(formData.value.platforms),

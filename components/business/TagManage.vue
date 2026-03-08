@@ -7,62 +7,101 @@
           管理系统中的所有标签，标签颜色将由系统自动生成绝美莫兰迪色
         </p>
       </div>
-      <BaseButton variant="primary" size="md" @click="openModal">
+      <Button @click="openModal">
         <i class="ri-add-line text-lg"></i>
         新建标签
-      </BaseButton>
+      </Button>
     </div>
 
     <div class="flex-1 overflow-hidden">
-      <BaseTable
-        :columns="columns"
-        :data="tableData"
+      <DataTable
+        :value="tableData"
         :loading="isLoading"
-        :total="tableData.length"
-        showActions
-        @edit="openEditModal"
-        @delete="handleDelete"
+        tableStyle="min-width: 50rem"
+        class="w-full"
       >
-        <template #cell-name="{ row }">
-          <BaseTag :label="row.name" :color="row.color" size="small" />
-        </template>
-      </BaseTable>
+        <Column field="name" header="标签名称" style="width: 40%">
+          <template #body="{ data }">
+            <Tag
+              :value="data.name"
+              :style="{
+                backgroundColor: data.color,
+                color: getTextColor(data.color),
+              }"
+            />
+          </template>
+        </Column>
+        <Column
+          field="promptCount"
+          header="关联提示词数量"
+          style="width: 30%"
+        ></Column>
+        <Column header="操作" style="width: 30%">
+          <template #body="{ data }">
+            <div class="flex gap-2">
+              <Button
+                text
+                severity="secondary"
+                size="small"
+                @click="openEditModal(data)"
+              >
+                编辑
+              </Button>
+              <Button
+                text
+                severity="danger"
+                size="small"
+                @click="handleDelete(data)"
+              >
+                删除
+              </Button>
+            </div>
+          </template>
+        </Column>
+      </DataTable>
     </div>
-    <BaseModal
-      v-model="isModalOpen"
-      :title="modalMode === 'create' ? '新建标签' : '编辑标签'"
-      confirmText="提交"
-      @confirm="saveData"
+
+    <Dialog
+      v-model:visible="isModalOpen"
+      :header="modalMode === 'create' ? '新建标签' : '编辑标签'"
+      :style="{ width: '450px' }"
+      :modal="true"
     >
-      <BaseInput
-        v-model.trim="formData.name"
-        label="标签名称"
-        type="text"
-        placeholder="请输入标签名称"
-        :required="true"
-        :trim="true"
-        @keydown.enter="saveData"
-        helpText="标签可用于为提示词的自定义分组，例如：AI漫剧常用，公司项目等"
-      />
-    </BaseModal>
+      <div class="space-y-4">
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium">
+            标签名称 <span class="text-red-500">*</span>
+          </label>
+          <InputText
+            v-model.trim="formData.name"
+            placeholder="请输入标签名称"
+            @keydown.enter="saveData"
+          />
+          <small class="text-xs text-base-content/50">
+            标签可用于为提示词的自定义分组，例如：AI漫剧常用，公司项目等
+          </small>
+        </div>
+      </div>
+      <template #footer>
+        <Button text severity="secondary" @click="isModalOpen = false"
+          >取消</Button
+        >
+        <Button @click="saveData">提交</Button>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import BaseTable, { type TableColumn } from "@/components/ui/BaseTable.vue";
-import BaseModal from "@/components/ui/BaseModal.vue";
-import BaseInput from "@/components/ui/BaseInput.vue";
-import BaseButton from "@/components/ui/BaseButton.vue";
-import BaseTag from "@/components/ui/BaseTag.vue";
+import { useConfirm } from "primevue/useconfirm";
+import { useMessage } from "@/composables/useMessage";
 import type { TagItem, PromptItem } from "@/types";
 import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
-import { useConfirm } from "@/composables/useConfirm";
-import { useMessage } from "@/composables/useMessage";
 import { createDefaultTag } from "@/utils/factories";
 
-const { confirm } = useConfirm();
+const confirm = useConfirm();
 const { success, warning } = useMessage();
 
 const tableData = ref<TagItem[]>([]);
@@ -73,11 +112,14 @@ const editingId = ref<string>("");
 
 const formData = ref<TagItem>(createDefaultTag());
 
-const columns: TableColumn<TagItem>[] = [
-  { key: "name", label: "标签名称", width: "40%" },
-  { key: "promptCount", label: "关联提示词数量", width: "30%" },
-  { key: "actions", label: "操作", width: "30%" },
-];
+const getTextColor = (bgColor: string): string => {
+  const hex = bgColor.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 128 ? "#1f2937" : "#ffffff";
+};
 
 const ensureArray = <T,>(
   data: T[] | Record<string, T> | null | undefined,
@@ -147,13 +189,21 @@ const saveData = async () => {
   await loadData();
 };
 
-const handleDelete = async (row: TagItem) => {
-  if (await confirm(`确定删除标签 "${row.name}" 吗？`, "警告", "danger")) {
-    const newList = tableData.value.filter((item) => item.id !== row.id);
-    await localStore.set(STORAGE_KEYS.TAGS, newList);
-    success("删除成功");
-    await loadData();
-  }
+const handleDelete = (row: TagItem) => {
+  confirm.require({
+    message: `确定删除标签 "${row.name}" 吗？`,
+    header: "警告",
+    icon: "ri-error-warning-line",
+    rejectLabel: "取消",
+    acceptLabel: "确定",
+    acceptClass: "p-button-danger",
+    accept: async () => {
+      const newList = tableData.value.filter((item) => item.id !== row.id);
+      await localStore.set(STORAGE_KEYS.TAGS, newList);
+      success("删除成功");
+      await loadData();
+    },
+  });
 };
 
 onMounted(() => loadData());

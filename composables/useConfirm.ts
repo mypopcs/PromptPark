@@ -1,63 +1,31 @@
 // composables/useConfirm.ts
-import { reactive } from "vue";
-
-interface ConfirmState {
-  isOpen: boolean;
-  title: string;
-  message: string;
-  variant: "info" | "warning" | "danger";
-  confirmText: string;
-  cancelText: string;
-  resolve: ((value: boolean) => void) | null;
-}
-
-// 极其优雅的单例模式：全局共享这一个 state
-const state = reactive<ConfirmState>({
-  isOpen: false,
-  title: "",
-  message: "",
-  variant: "info",
-  confirmText: "确定",
-  cancelText: "取消",
-  resolve: null,
-});
+import { useConfirm as usePrimeVueConfirm } from "primevue/useconfirm";
 
 export const useConfirm = () => {
-  /**
-   * 唤起全局确认弹窗
-   * @param message 提示正文
-   * @param title 标题
-   * @param variant 类型 (决定按钮颜色和图标)
-   * @param confirmText 确认按钮文字
-   * @param cancelText 取消按钮文字
-   */
-  const confirm = (
-    message: string,
-    title: string = "提示",
-    variant: "info" | "warning" | "danger" = "warning",
-    confirmText: string = "确定",
-    cancelText: string = "取消",
-  ): Promise<boolean> => {
-    state.message = message;
-    state.title = title;
-    state.variant = variant;
-    state.confirmText = confirmText;
-    state.cancelText = cancelText;
-    state.isOpen = true;
+  const confirm = usePrimeVueConfirm();
 
-    // 返回一个 Promise，等到用户点击弹窗按钮时才 resolve
+  const showConfirm = (
+    message: string,
+    header: string = "提示",
+    severity: "info" | "warning" | "danger" = "warning",
+    acceptLabel: string = "确定",
+    rejectLabel: string = "取消",
+  ): Promise<boolean> => {
     return new Promise((resolve) => {
-      state.resolve = resolve;
+      confirm.require({
+        message,
+        header,
+        icon: severity === "danger" ? "ri-error-warning-line" : severity === "warning" ? "ri-alert-line" : "ri-information-line",
+        acceptLabel,
+        rejectLabel,
+        acceptClass: severity === "danger" ? "p-button-danger" : undefined,
+        accept: () => resolve(true),
+        reject: () => resolve(false),
+      });
     });
   };
 
-  const handleAction = (value: boolean) => {
-    state.isOpen = false;
-    if (state.resolve) {
-      state.resolve(value);
-      state.resolve = null;
-    }
+  return {
+    confirm: showConfirm,
   };
-
-  return { state, confirm, handleAction };
 };

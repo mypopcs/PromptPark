@@ -7,48 +7,79 @@
           管理您的词典及下属分类，分类将与词典强绑定
         </p>
       </div>
-      <BaseButton variant="primary" size="md" @click="openAddModal">
+      <Button @click="openAddModal">
         <i class="ri-add-line text-lg"></i>
         新增词典和分类
-      </BaseButton>
+      </Button>
     </div>
 
     <div class="flex-1 overflow-hidden">
-      <BaseTable
-        :columns="columns"
-        :data="dictionaries"
+      <DataTable
+        :value="dictionaries"
         :loading="isLoading"
-        :total="dictionaries.length"
-        showActions
-        @edit="openEditModal"
-        @delete="handleDelete"
+        tableStyle="min-width: 60rem"
+        class="w-full"
       >
-        <template #cell-coverImage="{ row }">
-          <div class="avatar">
-            <div class="w-10 rounded">
-              <img
-                :src="
-                  row.coverImage || 'https://placehold.co/100x100?text=Dict'
-                "
-                alt="Cover"
-              />
+        <Column header="词典封面" style="width: 8%">
+          <template #body="{ data }">
+            <div class="avatar">
+              <div class="w-10 rounded">
+                <img
+                  :src="
+                    data.coverImage || 'https://placehold.co/100x100?text=Dict'
+                  "
+                  alt="Cover"
+                />
+              </div>
             </div>
-          </div>
-        </template>
-        <template #cell-isOfficialRecommended="{ row }">
-          <span
-            v-if="row.isOfficialRecommended"
-            class="badge badge-success badge-sm text-white"
-            >官方推荐</span
-          >
-          <span v-else class="text-base-content/40 text-sm">-</span>
-        </template>
-        <template #cell-price="{ row }">
-          <span class="font-mono text-warning font-medium"
-            >¥ {{ row.price?.toFixed(2) || "0.00" }}</span
-          >
-        </template>
-      </BaseTable>
+          </template>
+        </Column>
+        <Column
+          field="name"
+          header="词典名"
+          sortable
+          style="width: 20%"
+        ></Column>
+        <Column
+          field="description"
+          header="词典描述"
+          style="width: 20%"
+        ></Column>
+        <Column
+          field="categoryCount"
+          header="关联分类数"
+          sortable
+          style="width: 10%"
+        ></Column>
+        <Column
+          field="promptCount"
+          header="关联提示词数"
+          sortable
+          style="width: 10%"
+        ></Column>
+        <Column header="操作" style="width: 12%">
+          <template #body="{ data }">
+            <div class="flex gap-2">
+              <Button
+                text
+                severity="secondary"
+                size="small"
+                @click="openEditModal(data)"
+              >
+                编辑
+              </Button>
+              <Button
+                text
+                severity="danger"
+                size="small"
+                @click="handleDelete(data)"
+              >
+                删除
+              </Button>
+            </div>
+          </template>
+        </Column>
+      </DataTable>
     </div>
 
     <DictionaryModal
@@ -62,16 +93,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import BaseTable, { type TableColumn } from "@/components/ui/BaseTable.vue";
+import { useConfirm } from "primevue/useconfirm";
+import { useMessage } from "@/composables/useMessage";
 import DictionaryModal from "@/components/business/DictionaryModal.vue";
 import type { DictionaryItem, CategoryItem } from "@/types";
 import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
-import { useConfirm } from "@/composables/useConfirm";
-import { useMessage } from "@/composables/useMessage";
-import BaseButton from "@/components/ui/BaseButton.vue";
 
-const { confirm } = useConfirm();
+const confirm = useConfirm();
 const { success } = useMessage();
 
 const dictionaries = ref<DictionaryItem[]>([]);
@@ -80,17 +109,6 @@ const isLoading = ref(false);
 const isModalOpen = ref(false);
 const modalMode = ref<"create" | "edit">("create");
 const currentData = ref<DictionaryItem | undefined>(undefined);
-
-const columns: TableColumn<DictionaryItem>[] = [
-  { key: "coverImage", label: "词典封面", width: "8%" },
-  { key: "name", label: "词典名", sortable: true, width: "20%" },
-  { key: "description", label: "词典描述", width: "20%" },
-  { key: "categoryCount", label: "关联分类数", sortable: true, width: "10%" },
-  { key: "promptCount", label: "关联提示词数", sortable: true, width: "10%" },
-  // { key: "price", label: "价格", sortable: true, width: "10%" },
-  // { key: "isOfficialRecommended", label: "推荐", width: "10%" },
-  { key: "actions", label: "操作", width: "12%" },
-];
 
 const loadData = async () => {
   isLoading.value = true;
@@ -143,25 +161,30 @@ const onSaveData = async ({
   await loadData();
 };
 
-const handleDelete = async (row: DictionaryItem) => {
-  if (
-    await confirm(
-      `确定要删除词典 "${row.name}" 吗？其下属分类将被一并删除！`,
-      "危险",
-      "danger",
-    )
-  ) {
-    const newDictList = dictionaries.value.filter((item) => item.id !== row.id);
-    await localStore.set(STORAGE_KEYS.DICTIONARIES, newDictList);
-    const c =
-      (await localStore.get<CategoryItem[]>(STORAGE_KEYS.CATEGORIES, [])) || [];
-    await localStore.set(
-      STORAGE_KEYS.CATEGORIES,
-      c.filter((cat) => cat.dictionaryId !== row.id),
-    );
-    success("删除成功");
-    await loadData();
-  }
+const handleDelete = (row: DictionaryItem) => {
+  confirm.require({
+    message: `确定要删除词典 "${row.name}" 吗？其下属分类将被一并删除！`,
+    header: "危险",
+    icon: "ri-error-warning-line",
+    acceptLabel: "确定",
+    rejectLabel: "取消",
+    acceptClass: "p-button-danger",
+    accept: async () => {
+      const newDictList = dictionaries.value.filter(
+        (item) => item.id !== row.id,
+      );
+      await localStore.set(STORAGE_KEYS.DICTIONARIES, newDictList);
+      const c =
+        (await localStore.get<CategoryItem[]>(STORAGE_KEYS.CATEGORIES, [])) ||
+        [];
+      await localStore.set(
+        STORAGE_KEYS.CATEGORIES,
+        c.filter((cat) => cat.dictionaryId !== row.id),
+      );
+      success("删除成功");
+      await loadData();
+    },
+  });
 };
 
 onMounted(() => loadData());

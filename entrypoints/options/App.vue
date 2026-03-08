@@ -19,8 +19,8 @@
         <component :is="currentComponent" />
       </main>
     </div>
-    <AppToast />
-    <GlobalConfirm />
+    <Toast position="top-center" />
+    <ConfirmDialog />
   </div>
 </template>
 
@@ -32,8 +32,6 @@ import DictionaryManage from "@/components/business/DictionaryManage.vue";
 import TagManage from "@/components/business/TagManage.vue";
 import PlatformManage from "@/components/business/PlatformManage.vue";
 import SettingsPanel from "@/components/business/SettingsPanel.vue";
-import AppToast from "@/components/ui/AppToast.vue";
-import GlobalConfirm from "@/components/ui/GlobalConfirm.vue";
 import FeedbackPanel from "@/components/business/FeedbackPanel.vue";
 import OptionHeader from "@/components/layout/OptionHeader.vue";
 import OptionSidemenu from "@/components/layout/OptionSidemenu.vue";

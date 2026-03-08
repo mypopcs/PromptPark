@@ -1,9 +1,6 @@
 <template>
   <div class="prompt-park-drawer-wrapper">
-    <!--抽屉开关-->
-    <BaseButton
-      variant="primary"
-      size="sm"
+    <Button
       class="fixed right-1 top-1/2 rounded-l-lg z-[99] overflow-hidden transition-all duration-300 ease-in-out hover:px-4 flex items-center justify-center"
       @click="isOpen = true"
       title="展开/折叠快捷键：Ctrl+Shift+Z"
@@ -21,8 +18,7 @@
       >
         PromptPark
       </p>
-    </BaseButton>
-    <!--抽屉内容-->
+    </Button>
     <Transition name="drawer-physic">
       <div
         v-if="isOpen"
@@ -32,22 +28,26 @@
           class="p-4 flex items-center justify-between bg-base-100 border-b border-base-200 shrink-0"
         >
           <div class="flex flex-col w-[160px]">
-            <BaseSelect
-              label="选择词典"
+            <label class="text-sm font-medium mb-1">选择词典</label>
+            <Select
               v-model="selectedDictId"
               :options="dictionaryOptions"
+              optionLabel="label"
+              optionValue="value"
               placeholder="请选择词典"
+              class="w-full"
+              appendTo="self"
             />
           </div>
-          <BaseButton
-            variant="default"
-            type="ghost"
-            size="sm"
-            shape="square"
+          <Button
+            variant="text"
+            severity="secondary"
+            rounded
             @click="isOpen = false"
+            class="!p-2"
           >
             <i class="ri-close-line text-lg"></i>
-          </BaseButton>
+          </Button>
         </header>
 
         <section class="p-4 bg-base-200/30 shrink-0">
@@ -71,35 +71,35 @@
                   ></span>
                 </span>
               </TransitionGroup>
-              <BaseInput
-                type="textarea"
+              <Textarea
                 v-model="manualInput"
                 @keyup.enter="addManualToken"
-                ghost
                 placeholder="输入或选择提示词..."
-                input-class="border-none hover:border-none focus:border-none"
+                :autoResize="true"
+                rows="1"
+                class="border-none shadow-none flex-1 min-w-[200px]"
+                :pt="{
+                  root: {
+                    class:
+                      'border-none hover:border-none focus:border-none bg-transparent',
+                  },
+                }"
               />
             </div>
             <div class="grid grid-cols-8 gap-2">
-              <BaseButton
-                variant="primary"
-                size="md"
-                @click="copyAll"
-                class="col-span-7"
-              >
+              <Button @click="copyAll" class="col-span-7">
                 <i class="ri-file-copy-line mr-1"></i>
                 复制组合
-              </BaseButton>
+              </Button>
 
-              <BaseButton
-                variant="error"
-                type="ghost"
-                size="md"
-                shape="square"
+              <Button
+                severity="danger"
+                variant="text"
                 @click="combinationList = []"
+                class="!p-2"
               >
                 <i class="ri-delete-bin-line opacity-40"></i>
-              </BaseButton>
+              </Button>
             </div>
           </div>
         </section>
@@ -108,31 +108,30 @@
           class="shrink-0 bg-base-100 border-b border-base-200 sticky top-0 z-20"
         >
           <div class="px-4 pt-4 pb-2">
-            <BaseInput
-              search-icon
-              size="md"
-              v-model="searchQuery"
-              placeholder="搜索提示词..."
-            />
+            <div class="relative">
+              <i
+                class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50"
+              ></i>
+              <InputText
+                v-model="searchQuery"
+                placeholder="搜索提示词..."
+                class="w-full pl-9"
+              />
+            </div>
           </div>
           <div class="flex gap-2 overflow-x-auto no-scrollbar px-4 pb-3">
-            <BaseButton
-              variant="primary"
-              size="xs"
-              @click="selectedCatId = 'all'"
-            >
+            <Button size="small" @click="selectedCatId = 'all'">
               全部分类
-            </BaseButton>
-            <BaseButton
+            </Button>
+            <Button
               v-for="cat in currentCategories"
               :key="cat.id"
-              variant="default"
-              type="ghost"
-              size="xs"
+              variant="outlined"
+              size="small"
               @click="selectedCatId = cat.id"
             >
               {{ cat.name }}
-            </BaseButton>
+            </Button>
           </div>
         </nav>
 
@@ -171,10 +170,11 @@ import type {
   CategoryItem,
   TagItem,
 } from "@/types";
-import BaseSelect from "@/components/ui/BaseSelect.vue";
-import BaseButton from "../ui/BaseButton.vue";
+import Button from "primevue/button";
+import Select from "primevue/select";
+import InputText from "primevue/inputtext";
+import Textarea from "primevue/textarea";
 import PromptCard from "@/components/ui/PromptCard.vue";
-import BaseInput from "../ui/BaseInput.vue";
 
 const { success, error } = useMessage();
 
@@ -350,12 +350,5 @@ onMounted(() => {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
-}
-/* 确保BaseButton的flex布局生效（如果组件内部样式冲突） */
-:deep(.BaseButton) {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  white-space: nowrap !important;
 }
 </style>

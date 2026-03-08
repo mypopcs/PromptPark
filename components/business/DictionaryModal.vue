@@ -1,53 +1,51 @@
 <template>
-  <BaseModal
-    v-model="isVisible"
-    :title="mode === 'edit' ? '编辑词典与分类' : '新增词典与分类'"
-    confirmText="提交"
-    @confirm="handleSave"
+  <Dialog
+    v-model:visible="isVisible"
+    :header="mode === 'edit' ? '编辑词典与分类' : '新增词典与分类'"
+    :style="{ width: '500px' }"
+    :modal="true"
   >
     <div class="space-y-6">
-      <BaseInput
-        v-model.trim="formData.name"
-        label="词典名称"
-        type="text"
-        placeholder="例如: 爆款文案词典"
-        :required="true"
-        :trim="true"
-      />
-      <MultiSelectInput
-        label="关联分类"
-        v-model="selectedCategoryIds"
-        :options="currentDictCategories"
-        placeholder="输入新分类名称..."
-        @create="handleCreateCategory"
-      />
-      <BaseInput
-        v-model.trim="formData.description"
-        label="词典描述"
-        type="textarea"
-        placeholder="一句话介绍这个词典..."
-        :required="false"
-        :trim="true"
-      />
-      <!-- <BaseInput
-        v-model.trim="formData.price"
-        label="销售价格 (¥)"
-        type="number"
-        placeholder="例如: 99.99"
-        :required="false"
-        :trim="true"
-        :min="0"
-        :step="0.01"
-      /> -->
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium">
+          词典名称 <span class="text-red-500">*</span>
+        </label>
+        <InputText
+          v-model.trim="formData.name"
+          placeholder="例如: 爆款文案词典"
+        />
+      </div>
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium">关联分类</label>
+        <MultiSelect
+          v-model="selectedCategoryIds"
+          :options="currentDictCategories"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="输入新分类名称..."
+          editable
+          :showToggleAll="false"
+        />
+      </div>
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium">词典描述</label>
+        <Textarea
+          v-model.trim="formData.description"
+          placeholder="一句话介绍这个词典..."
+          rows="2"
+        />
+      </div>
       <ImageUpload v-model="formData.coverImage" label="词典封面图" />
     </div>
-  </BaseModal>
+    <template #footer>
+      <Button text severity="secondary" @click="isVisible = false">取消</Button>
+      <Button @click="handleSave">提交</Button>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import BaseModal from "@/components/ui/BaseModal.vue";
-import MultiSelectInput from "@/components/ui/MultiSelectInput.vue";
 import ImageUpload from "@/components/ui/ImageUpload.vue";
 import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
@@ -57,7 +55,6 @@ import {
 } from "@/utils/factories";
 import { useMessage } from "@/composables/useMessage";
 import type { DictionaryItem, CategoryItem } from "@/types";
-import BaseInput from "../ui/BaseInput.vue";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -76,7 +73,7 @@ const isVisible = computed({
 const formData = ref<DictionaryItem>(createDefaultDictionary());
 const currentDictCategories = ref<CategoryItem[]>([]);
 const selectedCategoryIds = ref<string[]>([]);
-const allCategoriesCache = ref<CategoryItem[]>([]); // 暂存全局分类以便保存时合并
+const allCategoriesCache = ref<CategoryItem[]>([]);
 
 watch(
   () => props.modelValue,
@@ -103,12 +100,6 @@ watch(
   },
 );
 
-const handleCreateCategory = (name: string) => {
-  const newCat = createDefaultCategory(formData.value.id, name);
-  currentDictCategories.value.push(newCat);
-  selectedCategoryIds.value.push(newCat.id);
-};
-
 const handleSave = async () => {
   if (!formData.value.name) {
     warning("请填写词典名称");
@@ -119,7 +110,6 @@ const handleSave = async () => {
   formData.value.updatedAt = Date.now();
   if (props.mode === "create") formData.value.createdAt = Date.now();
 
-  // 把选中的分类挑出来
   const otherCats = allCategoriesCache.value.filter(
     (c) => c.dictionaryId !== formData.value.id,
   );

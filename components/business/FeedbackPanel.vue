@@ -10,19 +10,6 @@
             <span class="font-bold">版本 1.0.0</span>
           </p>
         </section>
-        <!-- <section class="pb-4">
-          <h2 class="text-lg font-black mb-3">主要功能</h2>
-          <ul
-            class="list-disc list-inside space-y-1 text-mx text-gray-700 ml-2"
-          >
-            <li>
-              <b>多库管理：</b>支持创建多个独立的词库并快速切换管理不同场景。
-            </li>
-            <li><b>分类管理：</b>按库给提示词做分类，便于快速查找和使用。</li>
-            <li><b>飞书同步：</b>支持配置私有飞书表格，多设备共享。</li>
-            <li><b>GitHub图床：</b>图片保存后自动上传，省去购买费用。</li>
-          </ul>
-        </section> -->
         <section class="pb-4">
           <h2 class="text-lg font-black mb-3">支持与交流</h2>
           <p class="text-sm space-y-2 opacity-80 mb-4">
@@ -108,36 +95,42 @@
             <section class="space-y-6 mb-8">
               <h2 class="text-lg font-black mb-3">意见反馈</h2>
               <div class="form-control">
-                <BaseInput
-                  type="radio"
-                  label="反馈类型"
-                  size="sm"
-                  v-model="form.type"
-                  :radio-options="feedbackTypeOptions"
-                  radio-name="feedback-type"
+                <label class="text-sm font-medium mb-2 block">反馈类型</label>
+                <div class="flex gap-4">
+                  <div v-for="opt in feedbackTypeOptions" :key="opt.value" class="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="feedback-type"
+                      :value="opt.value"
+                      v-model="form.type"
+                      class="radio radio-primary radio-sm"
+                    />
+                    <label class="text-sm cursor-pointer" @click="form.type = opt.value">{{ opt.label }}</label>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium">反馈内容</label>
+                <Textarea
+                  v-model.trim="form.content"
+                  placeholder="欢迎留下您的宝贵意见..."
+                  rows="4"
                 />
               </div>
-              <BaseInput
-                v-model.trim="form.content"
-                label="反馈内容"
-                type="textarea"
-                placeholder="欢迎留下您的宝贵意见..."
-              />
-              <BaseInput
-                v-model.trim="form.contact"
-                label="联系方式 (可选)"
-                type="text"
-                placeholder="邮箱或微信号"
-              />
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium">联系方式 (可选)</label>
+                <InputText
+                  v-model.trim="form.contact"
+                  placeholder="邮箱或微信号"
+                />
+              </div>
               <div class="card-actions mt-4">
-                <BaseButton
-                  variant="primary"
-                  size="md"
+                <Button
                   :disabled="isSubmitting || !form.content"
                   @click="submitFeedback"
                 >
                   {{ isSubmitting ? "正在提交至飞书..." : "立即提交反馈" }}
-                </BaseButton>
+                </Button>
               </div>
             </section>
             <section class="mb-8">
@@ -151,19 +144,6 @@
                 <p>邮箱：kimpub@163.com</p>
               </div>
             </section>
-            <!-- <section class="mb-8">
-              <h2 class="text-lg font-black mb-3">您对插件的整体评分</h2>
-              <div class="rating rating-lg gap-2">
-                <input
-                  v-for="i in 5"
-                  :key="i"
-                  type="radio"
-                  class="mask mask-star-2 bg-warning"
-                  v-model="form.rating"
-                  :value="i"
-                />
-              </div>
-            </section> -->
           </div>
         </div>
       </div>
@@ -174,10 +154,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useMessage } from "@/composables/useMessage";
-import { FeishuSyncService } from "@/utils/sync/FeishuSyncService"; //
-import { DEVELOPER_FEEDBACK_CONFIG } from "@/config"; //
-import BaseInput from "../ui/BaseInput.vue";
-import BaseButton from "../ui/BaseButton.vue";
+import { FeishuSyncService } from "@/utils/sync/FeishuSyncService";
+import { DEVELOPER_FEEDBACK_CONFIG } from "@/config";
 
 const { success, error } = useMessage();
 const isSubmitting = ref(false);
@@ -200,7 +178,6 @@ const submitFeedback = async () => {
   isSubmitting.value = true;
 
   try {
-    // 实例化飞书服务，直接使用硬编码的开发者私有配置
     const feishu = new FeishuSyncService({
       appId: DEVELOPER_FEEDBACK_CONFIG.appId,
       appSecret: DEVELOPER_FEEDBACK_CONFIG.appSecret,
@@ -217,7 +194,6 @@ const submitFeedback = async () => {
       系统环境: `UA: ${navigator.userAgent}`,
     };
 
-    // 写入开发者私有的 Table ID
     await feishu.insertRecord(DEVELOPER_FEEDBACK_CONFIG.tableId, fields);
 
     success("🎉 提交成功！感谢您的反馈。");

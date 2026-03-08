@@ -1,10 +1,8 @@
 <template>
   <div class="collect-action-container">
     <Transition name="bounce">
-      <BaseButton
+      <Button
         v-show="showButton"
-        variant="primary"
-        size="sm"
         class="fixed z-[999] shadow-2xl px-4 font-bold"
         :style="{ top: buttonPos.y + 'px', left: buttonPos.x + 'px' }"
         @mousedown.prevent
@@ -12,7 +10,7 @@
       >
         <i class="ri-add-line mr-1"></i>
         采集到词库 (Ctrl+Alt+A)
-      </BaseButton>
+      </Button>
     </Transition>
 
     <SharedPromptModal
@@ -32,7 +30,7 @@ import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
 import { createDefaultPrompt } from "@/utils/factories";
 import type { PromptItem } from "@/types";
-import BaseButton from "@/components/ui/BaseButton.vue";
+import Button from "primevue/button";
 
 const { success } = useMessage();
 const showButton = ref(false);
@@ -41,7 +39,6 @@ const buttonPos = ref({ x: 0, y: 0 });
 const selectedText = ref("");
 const collectedData = ref<PromptItem | undefined>(undefined);
 
-// 处理划词位置计算
 const handleMouseUp = () => {
   if (isModalOpen.value) return;
 
@@ -66,16 +63,13 @@ const handleMouseUp = () => {
 
 const openCollectModal = () => {
   showButton.value = false;
-  // 构造初始数据
   const prompt = createDefaultPrompt();
   prompt.prompt = selectedText.value;
   collectedData.value = prompt;
 
-  // 显式开启弹窗
   isModalOpen.value = true;
 };
 
-// 监听快捷键
 const handleKeyDown = (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.altKey && e.key.toLowerCase() === "a") {
     const text = window.getSelection()?.toString().trim();

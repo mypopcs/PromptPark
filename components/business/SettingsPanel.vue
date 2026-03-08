@@ -7,31 +7,35 @@
         全局设置
       </h2>
       <div class="grid grid-cols-2 gap-8">
-        <BaseSelect
-          v-model="formData.theme"
-          label="主题外观"
-          size="sm"
-          :options="THEME_OPTIONS"
-          @change="saveSettings"
-        />
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium">主题外观</label>
+          <Select
+            v-model="formData.theme"
+            :options="themeSelectOptions"
+            optionLabel="label"
+            optionValue="value"
+            @change="saveSettings"
+            class="w-full"
+          />
+        </div>
       </div>
     </section>
+
     <section class="card-body border-b-2 border-base-300">
       <div
         class="flex justify-between items-center border-b border-base-200 pb-2 mb-4"
       >
         <h2 class="card-title text-lg flex items-center gap-2">图床设置</h2>
         <div class="flex items-center gap-2">
-          <BaseSelect
+          <label class="text-sm font-medium mr-2">图床</label>
+          <Select
             v-model="formData.imageHostProvider"
-            size="sm"
-            label="图床"
-            labelPosition="horizontal"
-            selectWidth="240px"
             :options="[
-              { value: 'none', label: '不使用图床', tip: '以 Base64 本地存储' },
-              { value: 'github', label: 'Github', tip: '推荐' },
+              { value: 'none', label: '不使用图床' },
+              { value: 'github', label: 'Github' },
             ]"
+            optionLabel="label"
+            optionValue="value"
             @change="saveSettings"
             class="w-60"
           />
@@ -40,38 +44,44 @@
       <div class="flex justify-between items-center">
         <div
           v-if="formData.imageHostProvider === 'github'"
-          class="space-y-4 animate-fade-in"
+          class="space-y-4 animate-fade-in w-full"
         >
-          <BaseInput
-            v-model.trim="formData.githubImageHost.token"
-            type="password"
-            size="sm"
-            label="Github Token (必须包含 repo 权限)"
-            placeholder="ghp_..."
-            @blur="saveSettings"
-          />
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium"
+              >Github Token (必须包含 repo 权限)</label
+            >
+            <InputText
+              v-model.trim="formData.githubImageHost.token"
+              type="password"
+              placeholder="ghp_..."
+              @blur="saveSettings"
+            />
+          </div>
           <div class="grid grid-cols-3 gap-4">
-            <BaseInput
-              v-model.trim="formData.githubImageHost.repo"
-              size="sm"
-              label="仓库 (用户名/仓库名)"
-              placeholder="zhangsan/images"
-              @blur="saveSettings"
-            />
-            <BaseInput
-              v-model.trim="formData.githubImageHost.branch"
-              size="sm"
-              label="分支"
-              placeholder="master"
-              @blur="saveSettings"
-            />
-            <BaseInput
-              v-model.trim="formData.githubImageHost.path"
-              size="sm"
-              label="存储路径 (留空放根目录)"
-              placeholder="prompts/"
-              @blur="saveSettings"
-            />
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium">仓库 (用户名/仓库名)</label>
+              <InputText
+                v-model.trim="formData.githubImageHost.repo"
+                placeholder="zhangsan/images"
+                @blur="saveSettings"
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium">分支</label>
+              <InputText
+                v-model.trim="formData.githubImageHost.branch"
+                placeholder="master"
+                @blur="saveSettings"
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium">存储路径 (留空放根目录)</label>
+              <InputText
+                v-model.trim="formData.githubImageHost.path"
+                placeholder="prompts/"
+                @blur="saveSettings"
+              />
+            </div>
           </div>
           <p class="text-xs text-base-content/50 mt-2">
             提示：上传的图片将通过
@@ -94,16 +104,15 @@
       >
         <h2 class="card-title text-lg flex items-center gap-2">数据同步</h2>
         <div class="flex items-center gap-2">
-          <BaseSelect
+          <label class="text-sm font-medium mr-2">同步引擎</label>
+          <Select
             v-model="formData.syncProvider"
-            size="sm"
-            label="同步引擎"
-            labelPosition="horizontal"
-            selectWidth="240px"
             :options="[
               { value: 'none', label: '停用同步' },
               { value: 'feishu', label: '飞书多维表格' },
             ]"
+            optionLabel="label"
+            optionValue="value"
             @change="saveSettings"
             class="w-60"
           />
@@ -121,30 +130,33 @@
         v-if="formData.syncProvider === 'github'"
         class="space-y-4 animate-fade-in"
       >
-        <BaseInput
-          v-model.trim="formData.githubSync.token"
-          type="password"
-          label="Github Personal Access Token"
-          placeholder="ghp_..."
-          @blur="saveSettings"
-          size="sm"
-        >
-          <template #label-append>
+        <div class="flex flex-col gap-2">
+          <div class="flex justify-between items-center">
+            <label class="text-sm font-medium"
+              >Github Personal Access Token</label
+            >
             <a
               href="https://github.com/settings/tokens/new"
               target="_blank"
-              class="label-text-alt link link-primary"
+              class="text-xs link link-primary"
               >获取 Token</a
             >
-          </template>
-        </BaseInput>
-        <BaseInput
-          v-model.trim="formData.githubSync.gistId"
-          label="Gist ID (留空则自动创建)"
-          @blur="saveSettings"
-          size="sm"
-          placeholder="ghs_......"
-        />
+          </div>
+          <InputText
+            v-model.trim="formData.githubSync.token"
+            type="password"
+            placeholder="ghp_..."
+            @blur="saveSettings"
+          />
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium">Gist ID (留空则自动创建)</label>
+          <InputText
+            v-model.trim="formData.githubSync.gistId"
+            placeholder="ghs_......"
+            @blur="saveSettings"
+          />
+        </div>
       </div>
 
       <div
@@ -152,44 +164,52 @@
         class="space-y-4 animate-fade-in"
       >
         <div class="grid grid-cols-2 gap-4">
-          <BaseInput
-            v-model.trim="formData.feishuSync.appId"
-            label="App ID"
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium">App ID</label>
+            <InputText
+              v-model.trim="formData.feishuSync.appId"
+              placeholder="cli_......"
+              @blur="saveSettings"
+            />
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium">App Secret</label>
+            <InputText
+              v-model.trim="formData.feishuSync.appSecret"
+              type="password"
+              placeholder="******"
+              @blur="saveSettings"
+            />
+          </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium">多维表格 App Token</label>
+          <small class="text-xs text-base-content/50 -mt-1"
+            >URL 中 base/ 后面的字符</small
+          >
+          <InputText
+            v-model.trim="formData.feishuSync.appToken"
+            placeholder="CXi......"
             @blur="saveSettings"
-            size="sm"
-            placeholder="cli_......"
-          />
-          <BaseInput
-            v-model.trim="formData.feishuSync.appSecret"
-            type="password"
-            label="App Secret"
-            @blur="saveSettings"
-            size="sm"
-            placeholder="******"
           />
         </div>
-        <BaseInput
-          v-model.trim="formData.feishuSync.appToken"
-          label="多维表格 App Token"
-          help-text="URL 中 base/ 后面的字符"
-          @blur="saveSettings"
-          size="sm"
-          placeholder="CXi......"
-        />
 
         <div class="divider text-xs text-base-content/50">
           多表映射关系 (Table ID)
         </div>
         <div class="grid grid-cols-3 gap-4 bg-base-200/50 p-4 rounded-box">
-          <BaseInput
+          <div
             v-for="key in tableKeys"
             :key="key.id"
-            v-model.trim="formData.feishuSync.mapping[key.id]"
-            size="sm"
-            :label="key.label"
-            placeholder="tbl_......"
-            @blur="saveSettings"
-          />
+            class="flex flex-col gap-2"
+          >
+            <label class="text-sm font-medium">{{ key.label }}</label>
+            <InputText
+              v-model.trim="formData.feishuSync.mapping[key.id]"
+              placeholder="tbl_......"
+              @blur="saveSettings"
+            />
+          </div>
         </div>
       </div>
 
@@ -197,58 +217,44 @@
         v-if="formData.syncProvider === 'notion'"
         class="space-y-4 animate-fade-in"
       >
-        <BaseInput
-          v-model.trim="formData.notionSync.token"
-          type="password"
-          label="Notion Integration Token"
-          placeholder="secret_......"
-          @blur="saveSettings"
-          size="sm"
-        />
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium">Notion Integration Token</label>
+          <InputText
+            v-model.trim="formData.notionSync.token"
+            type="password"
+            placeholder="secret_......"
+            @blur="saveSettings"
+          />
+        </div>
         <div class="divider text-xs text-base-content/50">Database ID 映射</div>
         <div class="grid grid-cols-3 gap-4 bg-base-200/50 p-4 rounded-box">
-          <BaseInput
+          <div
             v-for="key in tableKeys"
             :key="key.id"
-            v-model.trim="formData.notionSync.mapping[key.id]"
-            size="sm"
-            :label="key.label"
-            @blur="saveSettings"
-            placeholder="tbl_......"
-          />
+            class="flex flex-col gap-2"
+          >
+            <label class="text-sm font-medium">{{ key.label }}</label>
+            <InputText
+              v-model.trim="formData.notionSync.mapping[key.id]"
+              placeholder="tbl_......"
+              @blur="saveSettings"
+            />
+          </div>
         </div>
       </div>
 
       <div
         v-if="formData.syncProvider !== 'none'"
-        class="flex gap-4 mt-4 border-t border-base-200"
+        class="flex gap-4 mt-4 border-t border-base-200 pt-4"
       >
-        <BaseButton
-          variant="primary"
-          type="soft"
-          size="md"
-          :disabled="isSyncing"
-          @click="handlePush"
-        >
-          <span
-            v-if="isSyncing"
-            class="loading loading-spinner loading-xs"
-          ></span>
+        <Button :disabled="isSyncing" @click="handlePush">
+          <span v-if="isSyncing" class="pi pi-spinner pi-spin mr-2"></span>
           上传并覆盖云端数据
-        </BaseButton>
-        <BaseButton
-          variant="success"
-          type="soft"
-          size="md"
-          :disabled="isSyncing"
-          @click="handlePull"
-        >
-          <span
-            v-if="isSyncing"
-            class="loading loading-spinner loading-xs"
-          ></span>
+        </Button>
+        <Button severity="success" :disabled="isSyncing" @click="handlePull">
+          <span v-if="isSyncing" class="pi pi-spinner pi-spin mr-2"></span>
           下载并覆盖本地数据
-        </BaseButton>
+        </Button>
       </div>
     </section>
 
@@ -261,10 +267,10 @@
               将永久删除本地存储的所有提示词和设置，不可恢复。（不影响云端数据）
             </p>
           </div>
-          <BaseButton variant="error" size="md" @click="handleClearData">
+          <Button severity="danger" @click="handleClearData">
             <i class="ri-delete-bin-5-line text-lg"></i>
             清空数据
-          </BaseButton>
+          </Button>
         </div>
       </div>
     </section>
@@ -273,9 +279,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useTheme } from "@/composables/useTheme";
-import { useConfirm } from "@/composables/useConfirm";
+import { useConfirm } from "primevue/useconfirm";
 import { useMessage } from "@/composables/useMessage";
+import { useTheme } from "@/composables/useTheme";
 import { localStore, syncStore } from "@/utils/storage";
 import { STORAGE_KEYS, DEFAULT_SETTINGS } from "@/config";
 import type {
@@ -290,14 +296,15 @@ import type {
 } from "@/types";
 import type { SyncDataPayload } from "@/utils/sync";
 import { SyncFactory } from "@/utils/sync/SyncFactory";
-import BaseButton from "@/components/ui/BaseButton.vue";
-import BaseInput from "@/components/ui/BaseInput.vue";
-import BaseTag from "@/components/ui/BaseTag.vue";
-import BaseSelect from "@/components/ui/BaseSelect.vue";
 
 const { setTheme, THEME_OPTIONS } = useTheme();
-const { confirm } = useConfirm();
+const confirm = useConfirm();
 const { success, error } = useMessage();
+
+const themeSelectOptions = THEME_OPTIONS.map((opt) => ({
+  label: opt.label,
+  value: opt.value,
+}));
 
 const isSyncing = ref(false);
 
@@ -388,94 +395,101 @@ const unpackToLocal = async (payload: SyncDataPayload) => {
 };
 
 const handlePush = async () => {
-  const isOk = await confirm(
-    "确定将本地数据推送到云端吗？这将覆盖云端原有数据。",
-    "上云确认",
-    "info",
-  );
-  if (!isOk) return;
-
-  isSyncing.value = true;
-  try {
-    await saveSettings();
-
-    const provider = SyncFactory.createProvider(
-      formData.value.syncProvider,
-      formData.value,
-    );
-
-    const isConnected = await provider.testConnection();
-    if (!isConnected)
-      throw new Error("连通性测试失败，请检查您的 Token 或网络配置");
-
-    const payload = await packLocalData();
-
-    const resultId = await provider.pushData(payload);
-
-    if (
-      formData.value.syncProvider === "github" &&
-      resultId &&
-      typeof resultId === "string"
-    ) {
-      if (formData.value.githubSync.gistId !== resultId) {
-        formData.value.githubSync.gistId = resultId;
+  confirm.require({
+    message: "确定将本地数据推送到云端吗？这将覆盖云端原有数据。",
+    header: "上云确认",
+    icon: "ri-cloud-line",
+    acceptLabel: "确定",
+    rejectLabel: "取消",
+    accept: async () => {
+      isSyncing.value = true;
+      try {
         await saveSettings();
-      }
-    }
 
-    success("🎉 数据已成功推送至云端！");
-  } catch (err: any) {
-    error(err.message || "上传云端失败，请检查配置");
-  } finally {
-    isSyncing.value = false;
-  }
+        const provider = SyncFactory.createProvider(
+          formData.value.syncProvider,
+          formData.value,
+        );
+
+        const isConnected = await provider.testConnection();
+        if (!isConnected)
+          throw new Error("连通性测试失败，请检查您的 Token 或网络配置");
+
+        const payload = await packLocalData();
+
+        const resultId = await provider.pushData(payload);
+
+        if (
+          formData.value.syncProvider === "github" &&
+          resultId &&
+          typeof resultId === "string"
+        ) {
+          if (formData.value.githubSync.gistId !== resultId) {
+            formData.value.githubSync.gistId = resultId;
+            await saveSettings();
+          }
+        }
+
+        success("🎉 数据已成功推送至云端！");
+      } catch (err: any) {
+        error(err.message || "上传云端失败，请检查配置");
+      } finally {
+        isSyncing.value = false;
+      }
+    },
+  });
 };
 
 const handlePull = async () => {
-  const isOk = await confirm(
-    "确定从云端拉取数据吗？警告：这将会完全覆盖您的本地数据！此操作不可逆！",
-    "高危操作：覆盖本地",
-    "danger",
-  );
-  if (!isOk) return;
+  confirm.require({
+    message:
+      "确定从云端拉取数据吗？警告：这将会完全覆盖您的本地数据！此操作不可逆！",
+    header: "高危操作：覆盖本地",
+    icon: "ri-error-warning-line",
+    acceptLabel: "确定",
+    rejectLabel: "取消",
+    acceptClass: "p-button-danger",
+    accept: async () => {
+      isSyncing.value = true;
+      try {
+        await saveSettings();
 
-  isSyncing.value = true;
-  try {
-    await saveSettings();
+        const provider = SyncFactory.createProvider(
+          formData.value.syncProvider,
+          formData.value,
+        );
 
-    const provider = SyncFactory.createProvider(
-      formData.value.syncProvider,
-      formData.value,
-    );
+        const payload = await provider.pullData();
 
-    const payload = await provider.pullData();
+        await unpackToLocal(payload);
 
-    await unpackToLocal(payload);
-
-    success("☁️ 云端数据已成功拉取并覆盖本地！");
-    setTimeout(() => window.location.reload(), 1500);
-  } catch (err: any) {
-    error(err.message || "拉取数据失败，请检查配置");
-  } finally {
-    isSyncing.value = false;
-  }
+        success("☁️ 云端数据已成功拉取并覆盖本地！");
+        setTimeout(() => window.location.reload(), 1500);
+      } catch (err: any) {
+        error(err.message || "拉取数据失败，请检查配置");
+      } finally {
+        isSyncing.value = false;
+      }
+    },
+  });
 };
 
-const handleClearData = async () => {
-  const isOk = await confirm(
-    "确定要清空所有本地数据吗？此操作不可逆转！",
-    "高危操作",
-    "danger",
-    "确认清空",
-    "取消",
-  );
-  if (isOk) {
-    await localStore.clear();
-    await syncStore.clear();
-    success("所有本地数据已成功清空");
-    setTheme("system");
-    setTimeout(() => window.location.reload(), 1000);
-  }
+const handleClearData = () => {
+  confirm.require({
+    message: "确定要清空所有本地数据吗？此操作不可逆转！",
+    header: "高危操作",
+    icon: "ri-delete-bin-line",
+    acceptLabel: "确认清空",
+    rejectLabel: "取消",
+    acceptClass: "p-button-danger",
+    accept: async () => {
+      await localStore.clear();
+      await syncStore.clear();
+      success("所有本地数据已成功清空");
+      setTheme("system");
+      setTimeout(() => window.location.reload(), 1000);
+    },
+  });
 };
 </script>
 

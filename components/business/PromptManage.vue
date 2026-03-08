@@ -7,104 +7,138 @@
           在这里统一管理您的核心 Prompt，精准绑定词典与平台
         </p>
       </div>
-      <BaseButton variant="primary" size="md" @click="openAddModal">
+      <Button @click="openAddModal">
         <i class="ri-add-line text-lg"></i>
         新建提示词
-      </BaseButton>
+      </Button>
     </div>
 
     <div class="flex-1 overflow-hidden">
-      <BaseTable
-        :columns="columns"
-        :data="prompts"
+      <DataTable
+        :value="prompts"
         :loading="isLoading"
-        :total="prompts.length"
-        showActions
-        @edit="openEditModal"
-        @delete="handleDelete"
+        tableStyle="min-width: 80rem"
+        class="w-full"
       >
-        <template #cell-thumbnail="{ row }">
-          <div class="avatar" v-if="row.thumbnail">
-            <div class="w-10 h-10 rounded shadow-sm border border-base-200">
-              <img :src="row.thumbnail" alt="Thumb" class="object-cover" />
+        <Column header="封面" style="width: 5%">
+          <template #body="{ data }">
+            <div class="avatar" v-if="data.thumbnail">
+              <div class="w-10 h-10 rounded shadow-sm border border-base-200">
+                <img :src="data.thumbnail" alt="Thumb" class="object-cover" />
+              </div>
             </div>
-          </div>
-          <span v-else class="text-xs text-base-content/20">-</span>
-        </template>
+            <span v-else class="text-xs text-base-content/20">-</span>
+          </template>
+        </Column>
 
-        <template #cell-prompt="{ row }">
-          <div class="max-w-[240px] truncate font-bold text-base-content">
-            {{ row.prompt }}
-          </div>
-          <div
-            class="max-w-[240px] truncate text-xs text-base-content/50 mt-1 italic"
-          >
-            {{ row.translation }}
-          </div>
-        </template>
+        <Column header="提示词" style="width: 18%">
+          <template #body="{ data }">
+            <div class="max-w-[240px] truncate font-bold text-base-content">
+              {{ data.prompt }}
+            </div>
+            <div
+              class="max-w-[240px] truncate text-xs text-base-content/50 mt-1 italic"
+            >
+              {{ data.translation }}
+            </div>
+          </template>
+        </Column>
 
-        <template #cell-dictionaryId="{ row }">
-          <div class="text-xs font-bold text-primary">
-            {{ getDictName(row.dictionaryId) }}
-          </div>
-          <div
-            class="text-[10px] text-base-content/40 mt-0.5 uppercase tracking-tighter"
-          >
-            {{ getCategoryName(row.categoryId) }}
-          </div>
-        </template>
+        <Column header="标签" style="width: 15%">
+          <template #body="{ data }">
+            <div class="flex flex-wrap gap-1">
+              <Tag
+                v-for="tagId in data.tags"
+                :key="tagId"
+                :value="getTagName(tagId)"
+                :style="{
+                  backgroundColor: getTagColor(tagId),
+                  color: getTextColor(getTagColor(tagId)),
+                }"
+              />
+              <span
+                v-if="!data.tags || data.tags.length === 0"
+                class="text-[10px] opacity-20"
+                >无标签</span
+              >
+            </div>
+          </template>
+        </Column>
 
-        <template #cell-tags="{ row }">
-          <div class="flex flex-wrap gap-1">
-            <BaseTag
-              v-for="tagId in row.tags"
-              :key="tagId"
-              :label="getTagName(tagId)"
-              :color="getTagColor(tagId)"
-              size="small"
-            />
-            <span
-              v-if="!row.tags || row.tags.length === 0"
-              class="text-[10px] opacity-20"
-              >无标签</span
+        <Column header="所属词典/分类" style="width: 12%">
+          <template #body="{ data }">
+            <div class="text-xs font-bold text-primary">
+              {{ getDictName(data.dictionaryId) }}
+            </div>
+            <div
+              class="text-[10px] text-base-content/40 mt-0.5 uppercase tracking-tighter"
             >
-          </div>
-        </template>
+              {{ getCategoryName(data.categoryId) }}
+            </div>
+          </template>
+        </Column>
 
-        <template #cell-platforms="{ row }">
-          <div class="flex flex-wrap gap-1">
-            <span
-              v-for="pid in row.platforms"
-              :key="pid"
-              class="text-[10px] bg-base-200 px-1.5 py-0.5 rounded text-base-content/70"
-            >
-              {{ getPlatformName(pid) }}
-            </span>
-            <span
-              v-if="!row.platforms || row.platforms.length === 0"
-              class="text-[10px] opacity-20"
-              >-</span
-            >
-          </div>
-        </template>
+        <Column header="适用平台" style="width: 10%">
+          <template #body="{ data }">
+            <div class="flex flex-wrap gap-1">
+              <span
+                v-for="pid in data.platforms"
+                :key="pid"
+                class="text-[10px] bg-base-200 px-1.5 py-0.5 rounded text-base-content/70"
+              >
+                {{ getPlatformName(pid) }}
+              </span>
+              <span
+                v-if="!data.platforms || data.platforms.length === 0"
+                class="text-[10px] opacity-20"
+                >-</span
+              >
+            </div>
+          </template>
+        </Column>
 
-        <template #cell-models="{ row }">
-          <div class="flex flex-wrap gap-1">
-            <span
-              v-for="mid in row.models"
-              :key="mid"
-              class="text-[10px] bg-base-200 px-1.5 py-0.5 rounded text-base-content/70"
-            >
-              {{ getModelName(mid) }}
-            </span>
-            <span
-              v-if="!row.models || row.models.length === 0"
-              class="text-[10px] opacity-20"
-              >-</span
-            >
-          </div>
-        </template>
-      </BaseTable>
+        <Column header="适用模型" style="width: 10%">
+          <template #body="{ data }">
+            <div class="flex flex-wrap gap-1">
+              <span
+                v-for="mid in data.models"
+                :key="mid"
+                class="text-[10px] bg-base-200 px-1.5 py-0.5 rounded text-base-content/70"
+              >
+                {{ getModelName(mid) }}
+              </span>
+              <span
+                v-if="!data.models || data.models.length === 0"
+                class="text-[10px] opacity-20"
+                >-</span
+              >
+            </div>
+          </template>
+        </Column>
+
+        <Column header="操作" style="width: 8%">
+          <template #body="{ data }">
+            <div class="flex gap-2">
+              <Button
+                text
+                severity="secondary"
+                size="small"
+                @click="openEditModal(data)"
+              >
+                编辑
+              </Button>
+              <Button
+                text
+                severity="danger"
+                size="small"
+                @click="handleDelete(data)"
+              >
+                删除
+              </Button>
+            </div>
+          </template>
+        </Column>
+      </DataTable>
     </div>
 
     <SharedPromptModal
@@ -118,14 +152,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import BaseTable, { type TableColumn } from "@/components/ui/BaseTable.vue";
+import { useConfirm } from "primevue/useconfirm";
+import { useMessage } from "@/composables/useMessage";
 import SharedPromptModal from "@/components/business/SharedPromptModal.vue";
 import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
-import { useConfirm } from "@/composables/useConfirm";
-import { useMessage } from "@/composables/useMessage";
-import BaseButton from "@/components/ui/BaseButton.vue";
-import BaseTag from "@/components/ui/BaseTag.vue";
 import type {
   PromptItem,
   DictionaryItem,
@@ -135,8 +166,8 @@ import type {
   AIModelItem,
 } from "@/types";
 
-const { confirm } = useConfirm();
-const { success, error, warning } = useMessage();
+const confirm = useConfirm();
+const { success, warning } = useMessage();
 
 const prompts = ref<PromptItem[]>([]);
 const dictionaries = ref<DictionaryItem[]>([]);
@@ -150,16 +181,14 @@ const isModalOpen = ref(false);
 const modalMode = ref<"create" | "edit">("create");
 const currentData = ref<PromptItem | undefined>(undefined);
 
-const columns: TableColumn<PromptItem>[] = [
-  { key: "thumbnail", label: "封面", width: "5%" },
-  { key: "prompt", label: "提示词", width: "18%" },
-  { key: "translation", label: "中文翻译", width: "15%" },
-  { key: "tags", label: "标签", width: "15%" },
-  { key: "dictionaryId", label: "所属词典/分类", width: "12%" },
-  { key: "platforms", label: "适用平台", width: "10%" },
-  { key: "models", label: "适用模型", width: "10%" },
-  { key: "actions", label: "操作", width: "8%" },
-];
+const getTextColor = (bgColor: string): string => {
+  const hex = bgColor.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 128 ? "#1f2937" : "#ffffff";
+};
 
 const loadAllData = async () => {
   isLoading.value = true;
@@ -183,7 +212,6 @@ const loadAllData = async () => {
   }
 };
 
-// 🌟 映射增强：增加 toString() 确保匹配
 const getDictName = (id: string) =>
   dictionaries.value.find((d) => d.id.toString() === id?.toString())?.name ||
   "-";
@@ -230,13 +258,21 @@ const onSaveData = async (promptData: PromptItem) => {
   await loadAllData();
 };
 
-const handleDelete = async (row: PromptItem) => {
-  if (await confirm(`确定删除提示词吗？`, "警告", "danger")) {
-    const newList = prompts.value.filter((item) => item.id !== row.id);
-    await localStore.set(STORAGE_KEYS.PROMPTS, newList);
-    success("删除成功");
-    await loadAllData();
-  }
+const handleDelete = (row: PromptItem) => {
+  confirm.require({
+    message: "确定删除提示词吗？",
+    header: "警告",
+    icon: "ri-error-warning-line",
+    rejectLabel: "取消",
+    acceptLabel: "确定",
+    acceptClass: "p-button-danger",
+    accept: async () => {
+      const newList = prompts.value.filter((item) => item.id !== row.id);
+      await localStore.set(STORAGE_KEYS.PROMPTS, newList);
+      success("删除成功");
+      await loadAllData();
+    },
+  });
 };
 
 onMounted(() => loadAllData());

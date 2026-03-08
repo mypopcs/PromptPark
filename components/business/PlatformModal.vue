@@ -1,35 +1,39 @@
 <template>
-  <BaseModal
-    v-model="isVisible"
-    :title="mode === 'edit' ? '编辑AI平台与模型' : '新增AI平台与模型'"
-    confirmText="提交"
-    @confirm="handleSave"
+  <Dialog
+    v-model:visible="isVisible"
+    :header="mode === 'edit' ? '编辑AI平台与模型' : '新增AI平台与模型'"
+    :style="{ width: '500px' }"
+    :modal="true"
   >
     <div class="space-y-6">
-      <BaseInput
-        v-model="formData.name"
-        label="AI平台"
-        placeholder="例如: ChatGPT"
-        :required="true"
-        :trim="true"
-        type="text"
-      />
-      <MultiSelectInput
-        label="关联模型"
-        v-model="selectedModelIds"
-        :options="currentPlatformModels"
-        placeholder="输入新模型名称并回车..."
-        @create="handleCreateModel"
-      />
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium">
+          AI平台 <span class="text-red-500">*</span>
+        </label>
+        <InputText v-model="formData.name" placeholder="例如: ChatGPT" />
+      </div>
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium">关联模型</label>
+        <MultiSelect
+          v-model="selectedModelIds"
+          :options="currentPlatformModels"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="输入新模型名称并回车..."
+          editable
+          :showToggleAll="false"
+        />
+      </div>
     </div>
-  </BaseModal>
+    <template #footer>
+      <Button text severity="secondary" @click="isVisible = false">取消</Button>
+      <Button @click="handleSave">提交</Button>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import BaseModal from "@/components/ui/BaseModal.vue";
-import BaseInput from "@/components/ui/BaseInput.vue";
-import MultiSelectInput from "@/components/ui/MultiSelectInput.vue";
 import { localStore } from "@/utils/storage";
 import { STORAGE_KEYS } from "@/config";
 import { createDefaultPlatform, createDefaultModel } from "@/utils/factories";
@@ -78,12 +82,6 @@ watch(
     }
   },
 );
-
-const handleCreateModel = (name: string) => {
-  const newModel = createDefaultModel(formData.value.id, name);
-  currentPlatformModels.value.push(newModel);
-  selectedModelIds.value.push(newModel.id);
-};
 
 const handleSave = async () => {
   if (!formData.value.name) {
