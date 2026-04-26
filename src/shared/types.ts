@@ -58,6 +58,7 @@ export interface Prompt {
   id: string;
   dictionaryId: string;
   categoryId: string; // 必填
+  tagIds: string[];
   title: string;
   content: string; // 原文
   contentZh?: string; // 中文解释（搜索范围之一）
@@ -67,13 +68,6 @@ export interface Prompt {
   isDeleted: boolean;
   createdAt: number;
   updatedAt: number;
-}
-
-// 提示词与标签的多对多关联表
-export interface PromptTag {
-  id: string;
-  promptId: string;
-  tagId: string;
 }
 
 // ─── 消息载荷 ─────────────────────────────────────────────────

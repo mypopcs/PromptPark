@@ -7,38 +7,9 @@
 
 ---
 
-## ⚠️ Session 开始规则（每次必读）
-
-```
-1. 每次 Session 只做一个功能模块，不得"顺便做"
-2. 写代码前先用一段话复述任务范围，确认后再动手
-3. 完成后列出"修改了哪些文件"，有没有动冻结文件
-4. 涉及 browser.* API 先说出 API 名称，等人工核实后再写实现
-5. 所有数字参数从 config/params.ts 引用，不得硬编码
-6. 所有颜色尺寸从 config/styles.ts 引用，不得写死
-7. src/shared/ 新增文件需说明"哪两个 feature 会用到它"
-```
-
-**🔒 冻结文件（只读不写，变更需人工审批）**:
-
-- `wxt.config.ts` — 替代 manifest.json，权限在此声明
-- `src/shared/types.ts`
-- `config/params.ts`
-- `config/styles.ts`
-
-**⚠️ WXT 框架铁律（AI 必须遵守）**:
-
-- 使用 `browser.*` 而不是 `chrome.*`（WXT polyfill，全局可用，无需 import）
-- Background 所有代码必须在 `defineBackground(() => { ... })` 内部
-- Content Script 所有代码必须在 `defineContentScript({ main() { ... } })` 内部
-- `src/entrypoints/` 里不能放工具文件，工具文件放 `src/shared/`
-- entrypoints 最多一层嵌套：`entrypoints/popup/index.html` ✅，`entrypoints/features/popup/` ❌
-
----
-
 ## 一、项目一句话定位
 
-**PromptPark** — Chrome 插件，本地优先提示词资产管理器  
+**PromptPark** — 基于 Chrome 的本地优先提示词资产管理器。
 核心闭环：**采集 → 管理 → 调用 → 同步 → 备份**
 
 ---
@@ -47,19 +18,19 @@
 
 **做（P0）**:
 
-| ID  | 功能                       | 说明             |
-| --- | -------------------------- | ---------------- |
-| F01 | 词典/提示词/分类/标签 CRUD | 三层管理核心     |
-| F02 | 框选采集 + 快捷键采集弹窗  | Content Script   |
-| F03 | 侧边抽屉（筛选+拼合+复制） | Shadow DOM       |
-| F04 | 飞书双向手动同步           | 用户自己的表格   |
-| F05 | GitHub 图床上传            | public_repo 权限 |
-| F06 | 序列号激活 + 心跳验证      | 开发者飞书表格   |
-| F07 | 数据备份导入导出           | JSON 格式        |
-| F08 | 首次安装初始化             | onInstalled      |
-| F10 | 主题切换（浅/深/系统）     |                  |
-| F11 | 平台和模型管理             | 预设+自定义      |
-| F12 | 注入范围管理（黑白名单）   |                  |
+| ID  | 功能                       | 说明                                          |
+| --- | -------------------------- | --------------------------------------------- |
+| F01 | 词典/提示词/分类/标签 CRUD | 三层管理核心                                  |
+| F02 | 框选采集 + 快捷键采集弹窗  | Content Script 注入，sessionStorage 暂存      |
+| F03 | 侧边抽屉（筛选+拼合+复制） | Shadow DOM 挂载，防宿主样式污染               |
+| F04 | 飞书双向手动同步           | 挂载用户私有飞书多维表格（带 QPS 与重试机制） |
+| F05 | GitHub 图床上传            | public_repo 权限，替换时自动删除旧图          |
+| F06 | 序列号激活与验证           | 滚动哈希 Checksum 校验，7 天心跳验证          |
+| F07 | 数据备份导入导出           | JSON 格式全量备份                             |
+| F08 | 首次安装初始化             | onInstalled                                   |
+| F10 | 主题切换（浅/深/系统）     |                                               |
+| F11 | 平台和模型管理             | 预设+自定义                                   |
+| F12 | 注入范围管理（黑白名单）   | 白名单模式 / 全网页黑名单模式                 |
 
 **不做（遇到请求直接拒绝）**:
 
@@ -73,52 +44,60 @@
 
 ```
 promptpark/
-├── wxt.config.ts              🔒 冻结（替代 manifest.json）
+├── wxt.config.ts              # 🔒 冻结：WXT 构建与权限声明 (替代 manifest.json)
 ├── tsconfig.json              extends .wxt/tsconfig.json
-├── package.json
-├── SPEC.md                    本文件
-├── DONE.md                    完成记录
+├── package.json               # 依赖管理 (pnpm)
+├── SPEC.md                    # 🟢 项目蓝图与核心规范 (AI 上下文锚点)
+├── DONE.md                    # 开发进度与变更记录
 │
-├── config/                    🔒 参数和样式 token（冻结）
-│   ├── params.ts
-│   └── styles.ts
+├── config/                    # 🔒 冻结：全局配置与常量字典 (单一事实来源)
+│   ├── params.ts              # 业务逻辑数字参数 (防抖、宽高、QPS限制)
+│   ├── keys.ts                # Storage 键名与消息 Type 字典
+│   ├── styles.ts              # Tailwind CSS 变量映射 (严禁 Hex 色值)
+│   ├── presets.ts             # 预设数据 (平台、模型、快捷键)
+│   └── routes.ts              # 路由常量表
 │
 ├── src/
-│   ├── shared/                跨入口共享代码
-│   │   ├── types.ts           🔒 全局类型（准入：2+feature引用）
-│   │   ├── db.ts              Dexie 实例
-│   │   ├── storage.ts         browser.storage 封装
-│   │   ├── messaging.ts       消息封装
-│   │   ├── logger.ts          统一日志
-│   │   └── utils.ts           纯函数工具
+│   ├── assets/                # 静态资源与全局样式
+│   │   ├── css/
+│   │   │   └── tailwind.css   # 🟢 Tailwind 核心指令与 shadcn CSS 变量定义处
+│   │   └── icons/             # 扩展图标等非编译图片
 │   │
-│   ├── features/              功能模块（feature 之间禁止互相 import）
-│   │   ├── activation/        F06
-│   │   ├── collection/        F02
-│   │   ├── drawer/            F03
-│   │   ├── sync/              F04
-│   │   ├── github/            F05
-│   │   ├── backup/            F07
-│   │   └── inject-control/    F12
+│   ├── shared/                # 基础设施与跨模块共享逻辑 (严格纯粹，不含 UI)
+│   │   ├── types.ts           # 🔒 冻结：全局 TS 类型定义 (DB Schema、Payload)
+│   │   ├── db.ts              # Dexie 数据库实例与基础 CRUD 封装
+│   │   ├── api.ts             # Fetch 网络层封装 (带重试、限流、飞书 Token 注入)
+│   │   ├── storage.ts         # browser.storage 强类型读写封装
+│   │   ├── messaging.ts       # 跨环境 (Content/Background/Popup) 通信协议封装
+│   │   ├── logger.ts          # 统一控制台日志打印
+│   │   └── utils.ts           # 纯工具函数 (UUID 生成、时间格式化等)
 │   │
-│   ├── components/
-│   │   └── ui/                shadcn-vue 组件（自动管理）
+│   ├── features/              # 核心业务模块 (🔥 铁律：各模块之间【严禁】互相 import)
+│   │   ├── activation/        # F06: 序列号激活与心跳验证
+│   │   ├── collection/        # F02: 采集模块 (选词、快捷键抓取)
+│   │   ├── drawer/            # F03: 侧边抽屉面板业务
+│   │   ├── sync/              # F04: 飞书双向同步逻辑
+│   │   ├── github/            # F05: GitHub 图床上传与管理
+│   │   ├── backup/            # F07: 本地数据导入导出
+│   │   └── inject-control/    # F12: 黑白名单与注入范围管理
 │   │
-│   └── entrypoints/           ⚠️ WXT 入口（命名约定严格，最多一层嵌套）
-│       ├── background.ts      defineBackground 包裹
-│       ├── content.ts         defineContentScript 包裹
-│       ├── popup/
-│       │   ├── index.html     ← WXT 识别的入口文件
+│   ├── components/            # 全局跨业务复用组件
+│   │   └── ui/                # shadcn-vue 自动生成的原子 UI (Button, Input 等)
+│   │
+│   └── entrypoints/           # WXT 入口点 (🔥 铁律：【严禁】在此写复杂业务逻辑)
+│       ├── background.ts      # defineBackground 包裹 (负责生命周期、监听扩展事件)
+│       ├── content.ts         # defineContentScript (负责 DOM 注入、ShadowRoot 挂载)
+│       ├── popup/             # 点击扩展图标的弹窗
+│       │   ├── index.html
 │       │   ├── main.ts
-│       │   └── App.vue
-│       └── options/
-│           ├── index.html     ← WXT 识别的入口文件
+│       │   └── App.vue        # 仅做组件挂载，逻辑引用 features/
+│       └── options/           # 全屏管理面板主界面
+│           ├── index.html
 │           ├── main.ts
-│           └── App.vue
+│           └── App.vue        # 配合 vue-router 渲染路由页面
 │
-├── public/                    静态资源（图标）
-├── prompts/                   Prompt 模板（不参与构建）
-└── .wxt/                      WXT 自动生成（加入 .gitignore，不要修改）
+├── public/                    # 仅存放不参与 Vite 编译的公共文件 (如 manifest 要求的图标)
+└── .wxt/                      WXT 自动生成
 ```
 
 ---
@@ -159,30 +138,21 @@ promptpark/
 
 ## 六、数据库 Schema
 
+⚠️ **禁止修改 version(1)**，新增字段需追加 db.version(N)升级版本。
+
 ```typescript
 db.version(1).stores({
   dictionaries: "id, name, isDeleted, createdAt, updatedAt",
-  prompts: "id, dictionaryId, categoryId, isDeleted, createdAt, updatedAt",
+  prompts:
+    "id, dictionaryId, categoryId, *tagIds, isDeleted, createdAt, updatedAt",
   categories: "id, name, isDeleted, createdAt",
   tags: "id, name, isDeleted, createdAt",
   platforms: "id, name, isPreset, isDeleted",
   models: "id, platformId, name, isPreset, isDeleted",
 });
-// ⚠️ 后续版本追加 db.version(N)，不得修改 version(1)
 ```
 
 **重要**: `promptCount` 不存字段，显示时实时 `db.prompts.where({ categoryId }).count()`
-
----
-
-## 七、飞书凭据分离（极高风险）
-
-| 凭据                | 用途           | Storage Key       |
-| ------------------- | -------------- | ----------------- |
-| 开发者 AppID/Secret | 序列号激活验证 | `devTenantToken`  |
-| 用户 AppID/Secret   | 用户数据同步   | `userTenantToken` |
-
-**严禁混用，混用会导致安全漏洞**
 
 ---
 
@@ -248,25 +218,45 @@ db.version(1).stores({
 
 ---
 
-## 十、DONE.md 格式（每次必填）
+## 十、 跨环境通信矩阵 (Messaging Protocol)
 
-```markdown
-## {feature} · {日期}
+所有跨环境通信必须在 `src/shared/messaging.ts` 中定义类型，并遵循以下标准流转：
 
-### AI 声明修改范围
+| 动作类型 (Action) | 发送方          | 接收方     | Payload 载荷                                   | 预期响应                     |
+| :---------------- | :-------------- | :--------- | :--------------------------------------------- | :--------------------------- |
+| `COLLECT_TEXT`    | Content         | Background | `{ text: string, sourceUrl: string }`          | 写入 DB，返回 `ActionResult` |
+| `TOGGLE_DRAWER`   | Popup / BG      | Content    | `{ action: 'open'\|'close', dictId?: string }` | 抽屉挂载/卸载状态            |
+| `THEME_CHANGE`    | Options / Popup | Content    | `{ theme: 'light'\|'dark'\|'system' }`         | 触发 Content 样式重绘        |
+| `SYNC_START`      | Options         | Background | `{ force: boolean }`                           | 返回同步进度 Stream          |
 
-- 新增: ...
-- 修改: ...（说明改了什么）
-- 未动: 其他所有文件
+---
 
-### 人工确认
+## 十一、 核心环境执行标准
 
-- [ ] diff 与声明一致
-- [ ] 未动冻结文件（wxt.config.ts / src/shared/types.ts / config/\*.ts）
-- [ ] Chrome 手动测试通过
-- [ ] src/shared/ 新增文件满足"2+ feature 引用"准入
+### 1. Content Script 与 Shadow DOM (F03)
 
-### 遗留风险
+- **样式隔离**：必须使用 WXT 的 `createContentScriptUi` API。
+- **样式注入**：由于 Tailwind 不会自动穿透，必须在 mount 时通过 `browser.runtime.getURL('/assets/tailwind.css')` 获取打包后的 CSS，转换为 `CSSStyleSheet` 后注入到 ShadowRoot 的 `adoptedStyleSheets` 中。
+- **事件清理**：页面跳转或扩展更新导致 Content Script 卸载时，必须主动清除 DOM 节点和 EventListener。
 
-- （如有）
-```
+### 2. API 网络层 (F04/F05)
+
+- 所有请求必须通过 `src/shared/api/` 的统一入口发起。
+- 必须实现 **429 Too Many Requests 限流拦截**。
+- 必须实现 **指数退避重试（最大 3 次）**。
+
+### 3. URL 注入过滤 (F12)
+
+- 尽管配置了 `<all_urls>`，`content.ts` 在顶层执行时，**第一步必须进行 URL 过滤**。
+- 读取 `browser.storage` 中的黑白名单配置，如果当前 `window.location.hostname` 被排除，立即 `return` 终止后续组件和样式的加载，保障宿主网页性能。
+
+---
+
+## 十二、 飞书凭据分离（极高风险）
+
+| 凭据类型       | 存储 Key (`config/keys.ts`) | 用途                 | 约束                                 |
+| :------------- | :-------------------------- | :------------------- | :----------------------------------- |
+| **开发者凭据** | `devTenantToken`            | F06 序列号心跳验证   | 仅 Background 可读，禁止传输至前端   |
+| **用户凭据**   | `userTenantToken`           | F04 用户自有数据同步 | 存储至本地，仅在 Sync 模块调用时使用 |
+
+**⚠️ 严禁混用，否则会导致严重的数据越权与安全漏洞。**
